@@ -1,0 +1,999 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>974</width>
+    <height>662</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>ScheduleCreator</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <item>
+     <widget class="QSplitter" name="splitter">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QTabWidget" name="tabWidget">
+       <property name="minimumSize">
+        <size>
+         <width>500</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <widget class="QWidget" name="tab">
+        <attribute name="title">
+         <string>В Schedule</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <layout class="QGridLayout" name="gridLayout_2">
+           <item row="0" column="2">
+            <widget class="QPushButton" name="button_check_ecxel_sch">
+             <property name="text">
+              <string>Проверить</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="4">
+            <widget class="QPushButton" name="button_get_pattern_sch">
+             <property name="text">
+              <string>Создать шаблон</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QPushButton" name="button_delite_excel_sch">
+             <property name="text">
+              <string>Удалить</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QLabel" name="label_size_step_to_sch">
+             <property name="text">
+              <string>Временной шаг</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="4">
+            <layout class="QHBoxLayout" name="horizontalLayout">
+             <item>
+              <widget class="QLabel" name="label_size_step_to_sch_from_excel">
+               <property name="text">
+                <string>Шаг</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="spinBox_size_to_sch">
+               <property name="minimum">
+                <number>1</number>
+               </property>
+               <property name="maximum">
+                <number>999</number>
+               </property>
+               <property name="value">
+                <number>1</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="1" column="3">
+            <widget class="QComboBox" name="comboBox_choose_value_stepto_sch">
+             <item>
+              <property name="text">
+               <string>Месяц</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Год</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>День</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Час</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_start_to_sch">
+             <property name="text">
+              <string>Дата старта</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QLabel" name="label_in_one_file_to_sch">
+             <property name="text">
+              <string>В один файл</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="3">
+            <widget class="QCheckBox" name="checkBox_in_one_file_to_sch">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="tristate">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_end_to_sch">
+             <property name="text">
+              <string>Окончание</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="3">
+            <widget class="QPushButton" name="button_create_sch">
+             <property name="text">
+              <string>Собрать</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QDateEdit" name="dateEdit_end_date_to_sch">
+             <property name="wrapping">
+              <bool>true</bool>
+             </property>
+             <property name="frame">
+              <bool>true</bool>
+             </property>
+             <property name="buttonSymbols">
+              <enum>QAbstractSpinBox::PlusMinus</enum>
+             </property>
+             <property name="accelerated">
+              <bool>false</bool>
+             </property>
+             <property name="correctionMode">
+              <enum>QAbstractSpinBox::CorrectToPreviousValue</enum>
+             </property>
+             <property name="keyboardTracking">
+              <bool>false</bool>
+             </property>
+             <property name="showGroupSeparator" stdset="0">
+              <bool>false</bool>
+             </property>
+             <property name="dateTime">
+              <datetime>
+               <hour>0</hour>
+               <minute>0</minute>
+               <second>0</second>
+               <year>2023</year>
+               <month>1</month>
+               <day>2</day>
+              </datetime>
+             </property>
+             <property name="currentSection">
+              <enum>QDateTimeEdit::YearSection</enum>
+             </property>
+             <property name="calendarPopup">
+              <bool>true</bool>
+             </property>
+             <property name="currentSectionIndex">
+              <number>2</number>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QPushButton" name="button_add_excel_sch">
+             <property name="text">
+              <string>Добавить</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QDateEdit" name="dateEdit_start_date_to_sch">
+             <property name="dateTime">
+              <datetime>
+               <hour>0</hour>
+               <minute>0</minute>
+               <second>0</second>
+               <year>2022</year>
+               <month>1</month>
+               <day>2</day>
+              </datetime>
+             </property>
+             <property name="calendarPopup">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QGridLayout" name="gridLayout_5">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_target_folder_sch">
+             <property name="text">
+              <string>Целевая папка</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="lineEdit_target_folder_to_sch"/>
+           </item>
+           <item row="0" column="2">
+            <widget class="QPushButton" name="pushButton_target_folder_to_sch">
+             <property name="text">
+              <string>Выбрать</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QListWidget" name="listWidget_to_sch">
+           <property name="contextMenuPolicy">
+            <enum>Qt::CustomContextMenu</enum>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::Box</enum>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tab_2">
+        <attribute name="title">
+         <string>В Eccel</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <item>
+          <layout class="QGridLayout" name="gridLayout">
+           <item row="0" column="0">
+            <widget class="QPushButton" name="button_add_sch">
+             <property name="text">
+              <string>Добавить</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QPushButton" name="button_delite_sch">
+             <property name="text">
+              <string>Удалить</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QPushButton" name="button_create_excel_from_sch">
+             <property name="text">
+              <string>Собрать</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QCheckBox" name="checkBox_one_file_to_excel">
+             <property name="text">
+              <string>В один файл</string>
+             </property>
+             <property name="tristate">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QGridLayout" name="gridLayout_6">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_target_folder_to_excel">
+             <property name="text">
+              <string>Целевая папка</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="lineEdit_target_folder_to_excel"/>
+           </item>
+           <item row="0" column="2">
+            <widget class="QPushButton" name="pushButton_target_folder_to_excel">
+             <property name="text">
+              <string>Выбрать</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QListWidget" name="listWidget_to_excel_from_sch">
+           <property name="frameShape">
+            <enum>QFrame::Box</enum>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tab_3">
+        <attribute name="title">
+         <string>Конвертировать историю</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <layout class="QGridLayout" name="gridLayout_4">
+           <item row="1" column="4">
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <item>
+              <widget class="QLabel" name="label_size_step_sch_from_excel">
+               <property name="text">
+                <string>Шаг</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="spinBox_size_to_hist">
+               <property name="minimum">
+                <number>1</number>
+               </property>
+               <property name="maximum">
+                <number>999</number>
+               </property>
+               <property name="value">
+                <number>1</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="1" column="1">
+            <widget class="QDateEdit" name="dateEdit_start_date_hist">
+             <property name="dateTime">
+              <datetime>
+               <hour>0</hour>
+               <minute>0</minute>
+               <second>0</second>
+               <year>2010</year>
+               <month>1</month>
+               <day>2</day>
+              </datetime>
+             </property>
+             <property name="calendarPopup">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QLabel" name="label_size_step_sch">
+             <property name="text">
+              <string>Временной шаг</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="3">
+            <widget class="QCheckBox" name="checkBox_in_one_file_sch">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="tabletTracking">
+              <bool>false</bool>
+             </property>
+             <property name="acceptDrops">
+              <bool>false</bool>
+             </property>
+             <property name="toolTipDuration">
+              <number>-1</number>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+             <property name="tristate">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_hist">
+             <property name="text">
+              <string>Дата старта</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_end_hist">
+             <property name="text">
+              <string>Окончание</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="3">
+            <widget class="QComboBox" name="comboBox_choose_value_step_sch">
+             <item>
+              <property name="text">
+               <string>Месяц</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Год</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>День</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Час</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="0" column="3">
+            <widget class="QPushButton" name="button_create_sch_hist">
+             <property name="text">
+              <string>Собрать</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="4">
+            <widget class="QPushButton" name="button_get_pattern_hist">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Создать шаблон</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QPushButton" name="button_delite_excel_hist">
+             <property name="text">
+              <string>Удалить</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QDateEdit" name="dateEdit_end_date_hist">
+             <property name="dateTime">
+              <datetime>
+               <hour>0</hour>
+               <minute>0</minute>
+               <second>0</second>
+               <year>2020</year>
+               <month>1</month>
+               <day>2</day>
+              </datetime>
+             </property>
+             <property name="calendarPopup">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QPushButton" name="button_check_ecxel_hist">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Проверить</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QLabel" name="label_in_one_file_sch">
+             <property name="text">
+              <string>В один файл</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QPushButton" name="button_add_excel_hist">
+             <property name="text">
+              <string>Добавить</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QGridLayout" name="gridLayout_3">
+           <item row="0" column="2">
+            <widget class="QCheckBox" name="checkBox_wefac">
+             <property name="text">
+              <string>WEFAC</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QCheckBox" name="checkBox_prod_well_stop">
+             <property name="text">
+              <string>Остановки добывающих</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="3">
+            <widget class="QCheckBox" name="checkBox_hist_to_excel">
+             <property name="text">
+              <string>В Excel</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QCheckBox" name="checkBox_inj_well_stop">
+             <property name="text">
+              <string>Остановки нагнетательных</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QGridLayout" name="gridLayout_9">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_3">
+             <property name="text">
+              <string>Контроль водонагнетательных</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string>Контроль добывающих</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="4">
+            <widget class="QComboBox" name="comboBox_hist_prod_control">
+             <item>
+              <property name="text">
+               <string>LRAT</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>ORAT</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>WRAT</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>GRAT</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>WGRA</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>NGL</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>RESV</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>BHP</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>THP</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>TGRUP</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>NONE</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QComboBox" name="comboBox_hist_inj_control">
+             <item>
+              <property name="text">
+               <string>RATE</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>BHP</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>THP</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>RESV</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>GRUP</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QGridLayout" name="gridLayout_7">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_target_folder_hist">
+             <property name="text">
+              <string>Целевая папка</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="lineEdit_target_folder_hist"/>
+           </item>
+           <item row="0" column="2">
+            <widget class="QPushButton" name="pushButton_target_folder_hist">
+             <property name="text">
+              <string>Выбрать</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QListWidget" name="listWidget_hist">
+           <property name="frameShape">
+            <enum>QFrame::Box</enum>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+      <widget class="QTextBrowser" name="textBrowser_log">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>974</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>button_add_excel_sch</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>add_excel_to_sch()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>85</x>
+     <y>74</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>161</x>
+     <y>27</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_delite_excel_sch</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>del_excel_to_sch()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>158</x>
+     <y>80</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>307</x>
+     <y>27</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_check_ecxel_sch</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>scheck_excel_to_sch()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>268</x>
+     <y>78</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>443</x>
+     <y>27</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_create_sch</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>screate_sch_from_excel()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>420</x>
+     <y>76</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>431</x>
+     <y>23</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_get_pattern_sch</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>create_excel_pattern_sch()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>584</x>
+     <y>86</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>580</x>
+     <y>27</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_add_sch</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>add_sch_to_excel()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>133</x>
+     <y>86</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>17</x>
+     <y>25</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_delite_sch</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>del_sch_to_excel()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>228</x>
+     <y>79</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>220</x>
+     <y>572</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_create_excel_from_sch</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>create_excel_from_sch()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>438</x>
+     <y>83</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>375</x>
+     <y>572</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_add_excel_hist</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>add_hist()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>45</x>
+     <y>75</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>45</x>
+     <y>29</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_delite_excel_hist</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>del_hist()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>146</x>
+     <y>71</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>153</x>
+     <y>23</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_check_ecxel_hist</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>check_hist_files()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>274</x>
+     <y>76</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>277</x>
+     <y>22</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_create_sch_hist</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>create_from_hist_files()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>432</x>
+     <y>86</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>388</x>
+     <y>572</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_get_pattern_hist</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>create_hist_pattern()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>539</x>
+     <y>79</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>565</x>
+     <y>572</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_target_folder_to_sch</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>choose_target_folder_to_sch()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>598</x>
+     <y>171</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>540</x>
+     <y>549</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_target_folder_to_excel</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>choose_target_folder_to_excel()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>584</x>
+     <y>133</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>532</x>
+     <y>545</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_target_folder_hist</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>choose_target_folder_hist()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>589</x>
+     <y>227</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>735</x>
+     <y>546</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <designerdata>
+  <property name="gridDeltaX">
+   <number>10</number>
+  </property>
+  <property name="gridDeltaY">
+   <number>10</number>
+  </property>
+  <property name="gridSnapX">
+   <bool>true</bool>
+  </property>
+  <property name="gridSnapY">
+   <bool>true</bool>
+  </property>
+  <property name="gridVisible">
+   <bool>true</bool>
+  </property>
+ </designerdata>
+ <slots>
+  <slot>add_excel_to_sch()</slot>
+  <slot>del_excel_to_sch()</slot>
+  <slot>check_excel_to_sch()</slot>
+  <slot>create_sch_from_excel()</slot>
+  <slot>create_excel_pattern_sch()</slot>
+  <slot>add_sch_to_excel()</slot>
+  <slot>del_sch_to_excel()</slot>
+  <slot>create_excel_from_sch()</slot>
+  <slot>add_hist()</slot>
+  <slot>del_hist()</slot>
+  <slot>check_hist_files()</slot>
+  <slot>create_from_hist_files()</slot>
+  <slot>create_hist_pattern()</slot>
+  <slot>choose_target_folder_to_sch()</slot>
+  <slot>choose_target_folder_to_excel()</slot>
+  <slot>choose_target_folder_hist()</slot>
+ </slots>
+</ui>

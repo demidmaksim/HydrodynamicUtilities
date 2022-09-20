@@ -1,0 +1,15 @@
+pandas
+numpy
+scipy
+black
+mypy
+pyxlsb
+openpyxl
+tabulate
+xlsxwriter
+plotly
+PySide6
+pyqt6
+pyqt-tools
+PyInstaller
+matplotlib
