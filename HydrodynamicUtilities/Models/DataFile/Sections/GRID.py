@@ -102,9 +102,9 @@ class CubeProperty(Keyword):
         self, other: Union[int, float, np.ndarray, CubeProperty]
     ) -> CubeProperty:
         if isinstance(other, (int, float, np.ndarray)):
-            return CubeProperty(self.Data ** other)
+            return CubeProperty(self.Data**other)
         elif isinstance(other, CubeProperty):
-            return CubeProperty(self.Data ** other.Data)
+            return CubeProperty(self.Data**other.Data)
         else:
             raise TypeError
 
@@ -195,9 +195,9 @@ class CubeProperty(Keyword):
         self, other: Union[int, float, np.ndarray, CubeProperty]
     ) -> CubeProperty:
         if isinstance(other, (int, float, np.ndarray)):
-            return CubeProperty(other ** self.Data)
+            return CubeProperty(other**self.Data)
         elif isinstance(other, CubeProperty):
-            return CubeProperty(other.Data ** self.Data)
+            return CubeProperty(other.Data**self.Data)
         else:
             raise TypeError
 
@@ -347,10 +347,10 @@ class CubsConstructor(BaseKeywordCreator):
 
 
 class MeshConstructor(BaseKeywordCreator):
-    def create(self, data: str, data_file: DataFile) -> CubeProperty:
+    def create(self, data: str, data_file: DataFile) -> Keyword:
         adata = ASCIIText(data)
 
-        kw = adata.get_keyword(True)
+        kw = str(adata.get_keyword(True))
         adata = adata.replace_multiplication()
         adata = adata.to_slash()
         cubs = np.array(adata.split(), dtype=float)
@@ -442,7 +442,7 @@ class GRID(Section):
         return GRIDConstructor
 
     @classmethod
-    def get_famous_keyword(cls) -> Dict[str, Type[Keyword]]:
+    def get_famous_keyword(cls) -> Dict[str, Type[CubeProperty]]:
         return cls.__Keyword
 
     @classmethod

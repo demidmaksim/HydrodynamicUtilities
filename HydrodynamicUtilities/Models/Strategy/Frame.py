@@ -187,8 +187,18 @@ class ScheduleSheet:
             raise TypeError
 
         new = deepcopy(self)
-
-        new.DF = pd.concat([new.DF, other.DF], ignore_index=True)
+        if isinstance(other, ScheduleRow):
+            new.DF = pd.concat(
+                [new.DF, pd.DataFrame(other.DF).T],
+                ignore_index=True,
+                axis=0,
+            )
+        if isinstance(other, ScheduleSheet):
+            new.DF = pd.concat(
+                [new.DF, pd.DataFrame(other.DF)],
+                ignore_index=True,
+                axis=0,
+            )
 
         return new
 
@@ -439,3 +449,26 @@ class ScheduleDataframe:
             sheet = ScheduleSheet(data.Pattern)
             self.__setattr__(sheet.Pattern.__name__, sheet)
         sheet.add_row(data)
+
+    def append(self, other: Union[ScheduleDataframe, ScheduleSheet]) -> None:
+        if type(other) == ScheduleDataframe:
+            for sheet in other:
+                name = sheet.Pattern.__name__
+                try:
+                    self_sheet = getattr(self, name)
+                    setattr(self, name, self_sheet + sheet)
+                except AttributeError:
+                    setattr(self, name, sheet)
+
+        elif type(other) == ScheduleSheet:
+            name = other.Pattern.__name__
+            try:
+                self_sheet = getattr(self, name)
+                setattr(self, name, self_sheet + other)
+            except AttributeError:
+                setattr(self, name, other)
+
+        elif isinstance(other, type(None)):
+            pass
+        else:
+            raise TypeError
