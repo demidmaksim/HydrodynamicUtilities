@@ -43,7 +43,7 @@ class BaseKeywordCreator:
     def create_arithmetic(self, data: str) -> ARITHMETIC:
         return ARITHMETIC([data])
 
-    def create(self, data: str) -> Keyword:
+    def create(self, data: str, data_file: DataFile) -> Keyword:
         adata = ASCIIText(data)
         kw = adata.get_keyword(True)
         return UnknownKeyword(str(kw), str(adata))

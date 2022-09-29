@@ -20,15 +20,16 @@ from HydrodynamicUtilities.Models.Time.Vector import TimeVector
 
 
 class ScheduleRow:
-    def __init__(self, pattern: Type[BaseKeyWord], data: Iterable):
+    def __init__(self, pattern: Type[BaseKeyWord], data: Iterable = None) -> None:
         self.Pattern = pattern
         self.DF = pd.Series(index=("Time",) + pattern.Order, dtype=object)
-        for v_id, value in enumerate(data):
-            if v_id < len(self.DF.values):
-                if value != "1*":
-                    self.DF.iloc[v_id] = value
-            else:
-                print("redundant value")
+        if data is not None:
+            for v_id, value in enumerate(data):
+                if v_id < len(self.DF.values):
+                    if value != "1*":
+                        self.DF.iloc[v_id] = value
+                else:
+                    print("redundant value")
 
     def __repr__(self) -> str:
         return f"ScheduleRow: {self.Pattern.__name__}"
@@ -100,6 +101,9 @@ class ScheduleRow:
             except AttributeError:
                 results.append((key, None))
         return iter(results)
+
+    def empty(self) -> bool:
+        return all(pd.isna(self.DF.values))
 
 
 class ScheduleSheet:
@@ -175,7 +179,7 @@ class ScheduleSheet:
                 results.append((key, None))
         return iter(results)
 
-    def __add__(self, other: Optional[ScheduleSheet]) -> ScheduleSheet:
+    def __add__(self, other: Union[ScheduleSheet, ScheduleRow]) -> ScheduleSheet:
         if other is None:
             return self
 

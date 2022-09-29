@@ -1,4 +1,4 @@
-from HydrodynamicModelAnalysis.Models.DataFile import (
+from HydrodynamicUtilities.Models.DataFile import (
     ASCIIFilesIndexer,
     DataFile,
     Section,
@@ -50,9 +50,9 @@ def convert_to_data_file(
         else:
             start = int(row["start"])
             finish = int(row["finish"])
-            data = files.get_text()[start:finish]
+            string_data = files.get_text()[start:finish]
             creator = act_sec.get_constructor()
-            kw_data = creator().create(data)
+            kw_data = creator().create(string_data, data_file)
             setattr(act_sec, kw, kw_data)
 
     return data_file

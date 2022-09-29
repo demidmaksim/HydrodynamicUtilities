@@ -148,7 +148,7 @@ class FluidPVTModelConstructor(BaseKeywordCreator):
             viscosity.astype(float),
         )
 
-    def create(self, data: str) -> Keyword:
+    def create(self, data: str, data_file: DataFile) -> Keyword:
         adata = ASCIIText(data)
 
         kw = adata.get_keyword(True)
@@ -178,7 +178,7 @@ class RockModelConstructor(BaseKeywordCreator):
             results.append(LETGOModel(**pattern))
         return results
 
-    def create(self, data: str) -> Keyword:
+    def create(self, data: str, data_file: DataFile) -> Keyword:
         adata = ASCIIText(data)
 
         kw = adata.get_keyword(True)
@@ -192,7 +192,7 @@ class RockModelConstructor(BaseKeywordCreator):
 
 
 class PROPSConstrucor(BaseKeywordCreator):
-    def create(self, data: str) -> Keyword:
+    def create(self, data: str, data_file: DataFile) -> Keyword:
         adata = ASCIIText(data)
 
         kw = str(adata.get_keyword())

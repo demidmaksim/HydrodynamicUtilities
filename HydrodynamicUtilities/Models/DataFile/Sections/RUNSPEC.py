@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from typing import Optional, Dict, Union, Type, Any
-
+    from ..DataFile import DataFile
 
 from ..Base import Section, Keyword, BaseKeywordCreator, UnknownKeyword
 from ...Time.Point import TimePoint
@@ -259,7 +259,7 @@ class RunspecKeywordCreator(BaseKeywordCreator):
             results[kw] = pos
         return DIMENS(**results)
 
-    def create(self, data: str) -> Keyword:
+    def create(self, data: str, data_file: DataFile) -> Keyword:
         adata = ASCIIText(data)
 
         kw = adata.get_keyword(True)

@@ -311,7 +311,7 @@ class SettingConstructor(BaseKeywordCreator):
     def init(self, data: str) -> INIT:
         return INIT()
 
-    def create(self, data: str) -> Keyword:
+    def create(self, data: str, data_file: DataFile) -> Keyword:
         adata = ASCIIText(data)
 
         kw = adata.get_keyword(True)
@@ -334,7 +334,7 @@ class CubsConstructor(BaseKeywordCreator):
         cubs = np.array(adata.split(), dtype=float)
         return ARRCube(cubs, kw)
 
-    def create(self, data: str) -> CubeProperty:
+    def create(self, data: str, data_file: DataFile) -> CubeProperty:
         adata = ASCIIText(data)
 
         kw = str(adata.get_keyword(True))
@@ -347,7 +347,7 @@ class CubsConstructor(BaseKeywordCreator):
 
 
 class MeshConstructor(BaseKeywordCreator):
-    def create(self, data: str) -> CubeProperty:
+    def create(self, data: str, data_file: DataFile) -> CubeProperty:
         adata = ASCIIText(data)
 
         kw = adata.get_keyword(True)
@@ -360,22 +360,22 @@ class MeshConstructor(BaseKeywordCreator):
 
 
 class GRIDConstructor(BaseKeywordCreator):
-    def create(self, data: str) -> Keyword:
+    def create(self, data: str, data_file: DataFile) -> Keyword:
         adata = ASCIIText(data)
 
         kw = str(adata.get_keyword())
 
         if str(kw) in GRID.get_mesh_keyword():
-            return MeshConstructor().create(str(adata))
+            return MeshConstructor().create(str(adata), data_file)
         elif str(kw) in GRID.get_cubs_keyword():
-            return CubsConstructor().create(str(adata))
+            return CubsConstructor().create(str(adata), data_file)
         elif "ARR" == str(kw)[:3]:
             return CubsConstructor().create_arrcube(str(adata))
         elif str(kw) not in GRID.get_famous_keyword().keys():
             kw = adata.get_keyword(True)
             return UnknownKeyword(str(kw), str(adata))
         else:
-            return SettingConstructor().create(str(adata))
+            return SettingConstructor().create(str(adata), data_file)
 
 
 class GRID(Section):
