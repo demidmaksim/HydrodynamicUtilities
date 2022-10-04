@@ -3,12 +3,13 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from typing import Callable, Type, Any, List, Dict
-    from HydrodynamicModelAnalysis.Models.DataFile import DataFile
+    from HydrodynamicUtilities.Models.DataFile import DataFile
 
 import abc
 
 from ..Source.EtNKW_crutch import data as all_keyword
 from .ASCIIFile import ASCIIText
+from copy import deepcopy
 
 
 class Section:
@@ -40,13 +41,22 @@ class Section:
 
 
 class BaseKeywordCreator:
-    def create_arithmetic(self, data: str) -> ARITHMETIC:
-        return ARITHMETIC([data])
+    @staticmethod
+    def create_arithmetic(data: str) -> ARITHMETIC:
+        results = []
+        for row in data.split("\n"):
+            if "/" not in row:
+                row = str(ASCIIText(row))
+                results.append(ArithmeticExpression(row))
+        return ARITHMETIC(results)
 
     def create(self, data: str, data_file: DataFile) -> Keyword:
         adata = ASCIIText(data)
         kw = adata.get_keyword(True)
-        return UnknownKeyword(str(kw), str(adata))
+        if str(kw) == ARITHMETIC.__name__:
+            return self.create_arithmetic(str(adata))
+        else:
+            return UnknownKeyword(str(kw), str(adata))
 
     def choose_fun(self, kw: str) -> Callable:
         return self.__getattribute__(kw.lower())
@@ -79,12 +89,29 @@ class OneRowKeyword(Keyword):
     pass
 
 
+class ArithmeticExpression(Keyword):
+    def __init__(self, string: str) -> None:
+        self.Value = string
+        self.Order = None
+
+    def __repr__(self) -> str:
+        return self.Value
+
+
 class ARITHMETIC(Keyword):
-    def __init__(self, calc: List[str]):
-        self.Calculations = calc
+    def __init__(self, calc: List[ArithmeticExpression]):
+        self.__Calculations = calc
+
+    @property
+    def expressions(self) -> List[ArithmeticExpression]:
+        return self.__Calculations
 
     def __add__(self, other: ARITHMETIC) -> ARITHMETIC:
-        return ARITHMETIC(self.Calculations + other.Calculations)
+        new = deepcopy(self)
+        for oe in other.expressions:
+            new.append(oe)
+        return new
 
-    def append(self, other: ARITHMETIC) -> None:
-        self.Calculations.extend(other.Calculations)
+    def append(self, other: ArithmeticExpression) -> None:
+        other.Order = len(self.__Calculations)
+        self.__Calculations.append(other)

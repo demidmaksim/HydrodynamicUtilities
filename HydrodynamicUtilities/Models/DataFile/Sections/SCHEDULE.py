@@ -5,9 +5,9 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from HydrodynamicUtilities.Models.DataFile.DataFile import DataFile
-    from typing import Any, Union, Optional, List, Type, Iterable
+    from typing import Any, Union, Optional, List, Type, Iterable, Tuple
 
-
+from typing import Iterable
 from ..Base import Section, UnknownKeyword
 
 from HydrodynamicUtilities.Models.Time import TimePoint
@@ -16,12 +16,16 @@ from HydrodynamicUtilities.Models.Strategy.Frame import (
     ScheduleSheet,
     ScheduleRow,
 )
-from HydrodynamicUtilities.Models.Source.EclipseScheduleNames import ScheduleKeyword
-from HydrodynamicUtilities.Models.Source.EtNKW_crutch import data as all_ecl_keyword
+from HydrodynamicUtilities.Models.Source.EclipseScheduleNames import (
+    ScheduleKeyword,
+    WELLTRACK,
+    ARITHMETIC,
+)
 from ..ASCIIFile import ASCIIText, ASCIIRow
 from ..Base import Keyword, BaseKeywordCreator
 import datetime as dt
 import numpy as np
+import pandas as pd
 
 
 class DirtySchData(UnknownKeyword):
@@ -65,7 +69,7 @@ class DATESkW(Keyword):
 
     def get_last_time(self) -> np.datetime64:
         if not self.Dates:
-            return np.NAN
+            return np.datetime64("NaT")
         else:
             return self.Dates[-1]
 
@@ -103,18 +107,22 @@ class SCHEDULECreator(BaseKeywordCreator):
         while not adata.empty():
             target_data = adata.to_slash(True)
             if not target_data.empty():
-                if data_file.SCHEDULE.Dates is None:
+                if data_file.SCHEDULE.DATES is None:
                     try:
                         date = data_file.RUNSPEC.get_start_date()
                         if date is None:
-                            date = np.NAN
+                            date = np.datetime64("NaT")
                         else:
                             date = date.to_datetime64()
                     except:
-                        date = np.NAN
+                        date = np.datetime64("NaT")
                 else:
-                    date = data_file.SCHEDULE.Dates.get_last_time()
-                sr = ScheduleRow(ss.Pattern, [date] + target_data.split())
+                    date = data_file.SCHEDULE.DATES.get_last_time()
+                if kw != ARITHMETIC.__name__:
+                    sr = ScheduleRow(ss.Pattern, [date] + target_data.split())
+                else:
+                    sr = ScheduleRow(ss.Pattern, [date] + [target_data])
+
                 ss = ss + sr
 
         return SCHEDULEKeyword(str(kw), ss)
@@ -123,11 +131,46 @@ class SCHEDULECreator(BaseKeywordCreator):
     def unknown_keyword(adata: ASCIIText, kw: str) -> Keyword:
         return DirtySchData(kw, str(adata))
 
+    @staticmethod
+    def __get_well_bore_name(adata: ASCIIRow) -> Tuple[str, int]:
+        data = str(adata).strip()
+        if ":" in str(adata):
+            ind = data.index(":")
+            return data[:ind], int(data[ind:])
+        else:
+            return str(adata), 0
+
+    def welltrack_keyword(self, adata: ASCIIText) -> Keyword:
+        ss = ScheduleSheet(WELLTRACK)
+        wdata = adata.get_first_word(True)
+        wname, bname = self.__get_well_bore_name(wdata)
+        target_data = adata.to_slash(True)
+        list_data = target_data.split()
+        x = list_data[::4]
+        y = list_data[1::4]
+        z = list_data[2::4]
+        md = list_data[3::4]
+        df = pd.DataFrame(columns=WELLTRACK.Order)
+        df[WELLTRACK.X] = x
+        df[WELLTRACK.Y] = y
+        df[WELLTRACK.Z] = z
+        df[WELLTRACK.MD] = md
+        df[WELLTRACK.WellName] = wname
+        df[WELLTRACK.BoreName] = bname
+        df[WELLTRACK.PointNumber] = df.index
+        ss.DF = df
+        return SCHEDULEKeyword(WELLTRACK.__name__, ss)
+
+    def arithmetic(self) -> Keyword:
+        pass
+
     def create(self, data: str, data_file: DataFile) -> Keyword:
         adata = ASCIIText(data)
         kw = adata.get_keyword(True)
         adata = adata.replace_multiplication()
-        if str(kw).upper() in ScheduleKeyword.keyword.keys():
+        if str(kw).upper() == WELLTRACK.__name__:
+            return self.welltrack_keyword(adata)
+        elif str(kw).upper() in ScheduleKeyword.keyword.keys():
             return self.famous_keyword(adata, str(kw), data_file)
         elif str(kw) == "DATES":
             return self.data(adata, str())
@@ -140,7 +183,7 @@ class SCHEDULE(Section):
         super().__init__(data_file)
         self.SDF = ScheduleDataframe()
         self.DirtyData = []
-        self.Dates: Optional[DATESkW] = None
+        self.DATES: Optional[DATESkW] = None
 
     def __setattr__(self, key: str, value: Any) -> None:
 
@@ -160,16 +203,17 @@ class SCHEDULE(Section):
             self.DirtyData.append(value)
 
         elif isinstance(value, DATESkW):
-            if self.Dates is None:
-                super(SCHEDULE, self).__setattr__(key, value)
+
+            if self.DATES is None:
+                super().__setattr__(key, value)
             else:
-                self.Dates.extend(value)
+                self.DATES.extend(value)
 
         elif key in ("_Section__DataFile", "SDF", "DirtyData", "Dates"):
             super(SCHEDULE, self).__setattr__(key, value)
 
         else:
-            raise TypeError
+            super().__setattr__(key, value)
 
     @classmethod
     def get_constructor(cls) -> Type[BaseKeywordCreator]:

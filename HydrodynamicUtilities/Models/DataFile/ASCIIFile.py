@@ -137,9 +137,12 @@ class ASCIIFilesIndexer:
 
         for rid, row in arr_df.iterrows():
             ind = row["ind"]
-            slash_ind = self._Data.find("/", ind)
-            pattern = (df["ind"] > ind) & (df["ind"] < slash_ind)
-            df = df[~pattern]
+            slash_iter = re.finditer(f"/\s*\n", self._Data[ind:])
+            slash_ind = slash_iter.__next__().regs[0][0] + ind
+            next_kw = df["ind"].iloc[rid + 1]
+            if next_kw > slash_ind:
+                pattern = (df["ind"] > ind) & (df["ind"] < slash_ind)
+                df = df[~pattern]
         return df
 
     def _indexing(self) -> None:
@@ -234,6 +237,36 @@ class ASCIIText:
             self.Text = self.Text[self.Text.find(kw) + len(kw) :].strip()
 
         return ASCIIRow(kw)
+
+    def get_first_word(self, pop: bool = False) -> ASCIIRow:
+        values = []
+
+        try:
+            values.append(self.Text.index("\n"))
+        except ValueError:
+            pass
+
+        try:
+            values.append(self.Text.index("\t"))
+        except ValueError:
+            pass
+
+        try:
+            values.append(self.Text.index(" "))
+        except ValueError:
+            pass
+
+        if values:
+            min_ind = min(values)
+        else:
+            min_ind = -2
+
+        results = self.Text[:min_ind]
+
+        if pop:
+            self.Text = self.Text[min_ind:]
+
+        return ASCIIRow(results)
 
     def check_multiplication(self) -> bool:
         if "*" in self.Text:

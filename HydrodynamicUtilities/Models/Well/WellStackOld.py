@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 import pandas as pd
 import numpy as np
 
-from .Trajectory import Trajectory
+from .TrajectoryWorkerOld import Trajectory
 
 
 class WellList:

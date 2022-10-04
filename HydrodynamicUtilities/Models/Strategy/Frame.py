@@ -29,7 +29,7 @@ class ScheduleRow:
                     if value != "1*":
                         self.DF.iloc[v_id] = value
                 else:
-                    print("redundant value")
+                    print(f"KeyWord: {pattern.__name__}, redundant value")
 
     def __repr__(self) -> str:
         return f"ScheduleRow: {self.Pattern.__name__}"
@@ -472,3 +472,8 @@ class ScheduleDataframe:
             pass
         else:
             raise TypeError
+
+
+def get_sheet(name: str) -> ScheduleSheet:
+    pattern = ScheduleKeyword.Order[name.upper()]
+    return ScheduleSheet(pattern)

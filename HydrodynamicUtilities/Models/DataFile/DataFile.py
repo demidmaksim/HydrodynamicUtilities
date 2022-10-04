@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from HydrodynamicModelAnalysis.Models.DataFile import KeyWord
+    from HydrodynamicUtilities.Models.DataFile import KeyWord
     from typing import Tuple
 
 from .Sections.RUNSPEC import RUNSPEC

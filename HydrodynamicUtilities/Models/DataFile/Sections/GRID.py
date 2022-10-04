@@ -102,9 +102,9 @@ class CubeProperty(Keyword):
         self, other: Union[int, float, np.ndarray, CubeProperty]
     ) -> CubeProperty:
         if isinstance(other, (int, float, np.ndarray)):
-            return CubeProperty(self.Data**other)
+            return CubeProperty(self.Data ** other)
         elif isinstance(other, CubeProperty):
-            return CubeProperty(self.Data**other.Data)
+            return CubeProperty(self.Data ** other.Data)
         else:
             raise TypeError
 
@@ -195,9 +195,9 @@ class CubeProperty(Keyword):
         self, other: Union[int, float, np.ndarray, CubeProperty]
     ) -> CubeProperty:
         if isinstance(other, (int, float, np.ndarray)):
-            return CubeProperty(other**self.Data)
+            return CubeProperty(other ** self.Data)
         elif isinstance(other, CubeProperty):
-            return CubeProperty(other.Data**self.Data)
+            return CubeProperty(other.Data ** self.Data)
         else:
             raise TypeError
 

@@ -10,7 +10,7 @@ import numpy as np
 
 from copy import deepcopy
 
-from ..Base import Section, Keyword, BaseKeywordCreator, UnknownKeyword
+from ..Base import Section, Keyword, BaseKeywordCreator, UnknownKeyword, ARITHMETIC
 from ..ASCIIFile import ASCIIText
 
 
@@ -125,6 +125,22 @@ class RockModel:
         pass
 
 
+class Other:
+    def __init__(self) -> None:
+        pass
+
+    def __setattr__(self, key: str, value: Any) -> None:
+        if isinstance(value, ARITHMETIC):
+            if hasattr(self, "ARITHMETIC"):
+                arithmetic = self.ARITHMETIC
+                arithmetic = arithmetic + value
+                super().__setattr__(key, arithmetic)
+            else:
+                super().__setattr__(key, value)
+        else:
+            super().__setattr__(key, value)
+
+
 class FluidPVTModelConstructor(BaseKeywordCreator):
     def pvto(self, data: ASCIIText) -> PVTO:
         gor = np.array([])
@@ -191,19 +207,20 @@ class RockModelConstructor(BaseKeywordCreator):
         return fun(adata)
 
 
-class PROPSConstrucor(BaseKeywordCreator):
+class PROPSConstructor(BaseKeywordCreator):
     def create(self, data: str, data_file: DataFile) -> Keyword:
         adata = ASCIIText(data)
 
         kw = str(adata.get_keyword())
 
         if str(kw) in PROPS.get_fluid_keyword():
-            return FluidPVTModelConstructor().create(str(adata))
+            return FluidPVTModelConstructor().create(str(adata), data_file)
         elif str(kw) in PROPS.get_rock_keyword():
-            return RockModelConstructor().create(str(adata))
+            return RockModelConstructor().create(str(adata), data_file)
+
         else:
             kw = adata.get_keyword(True)
-            return UnknownKeyword(str(kw), str(adata))
+            return super().create(data, data_file)
 
 
 class PROPS(Section):
@@ -220,6 +237,7 @@ class PROPS(Section):
         super().__init__(data_file)
         self.Fluid = FluidPVTModel()
         self.Rock = RockModel()
+        self.Other = Other()
 
     def __setattr__(self, key, value) -> None:
         if isinstance(value, Keyword):
@@ -228,6 +246,8 @@ class PROPS(Section):
                 self.Fluid.__setattr__(kw, value)
             elif kw in self.__Rock:
                 self.Rock.__setattr__(kw, value)
+            else:
+                self.Other.__setattr__(kw, value)
         elif isinstance(value, str):
             super().__setattr__(key, ASCIIText(value))
         else:
@@ -235,7 +255,7 @@ class PROPS(Section):
 
     @classmethod
     def get_constructor(cls) -> Type[BaseKeywordCreator]:
-        return PROPSConstrucor
+        return PROPSConstructor
 
     @classmethod
     def get_famous_keyword(self) -> Dict[str, Type[Keyword]]:
