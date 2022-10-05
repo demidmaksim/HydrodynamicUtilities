@@ -73,8 +73,8 @@ def to_summary(calc_name: str, smspec: RowBinaryData, unsmry: RowBinaryData) -> 
     summary_header = SUMMARYHeader(
         np.array(smspec_dict["KEYWORDS"]),
         np.array(smspec_dict["WGNAMES"]),
-        smspec_dict["NUMS"],
-        smspec_dict["UNITS"],
+        np.array(smspec_dict["NUMS"]),
+        np.array(smspec_dict["UNITS"]),
     )
 
     summary = SUMMARY(
@@ -95,7 +95,7 @@ def get_time_vector(
     dey_vector: np.ndarray = unsmry["PARAMS"][:, 0]
     results = []
     for day_id, day in enumerate(dey_vector):
-        day *= 3600 * 24 * 10 ** 3
+        day *= 3600 * 24 * 10**3
         results.append(datetime + np.timedelta64(int(day), "ms"))
 
     return Time(np.array(results))

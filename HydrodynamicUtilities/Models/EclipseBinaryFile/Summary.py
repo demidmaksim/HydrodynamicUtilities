@@ -13,6 +13,9 @@ from .BinaryData import EclipseBinaryData
 from ..Time import TimeVector as Time
 from typing import Iterable
 from ..ParamVector import TimeSeries
+from copy import deepcopy
+
+import pandas as pd
 
 
 class SUMMARYHeader:
@@ -23,10 +26,10 @@ class SUMMARYHeader:
         num: np.ndarray,
         unit: np.ndarray,
     ) -> None:
-        self.Keywords = keywords
-        self.Names = names
-        self.Num = num
-        self.Unit = unit
+        self.Keywords = keywords.astype(str)
+        self.Names = names.astype(str)
+        self.Num = num.astype(int)
+        self.Unit = unit.astype(str)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__} {len(self.Keywords)}"
@@ -132,6 +135,51 @@ class SUMMARYHeader:
     def nums(self) -> List[int]:
         return list(self.Unit)
 
+    def replace_name(
+        self,
+        obj_name: Dict[Union[str, int], Iterable[Union[str, int]]] = None,
+        num_name: Dict[Union[str, int], Iterable[Union[str, int]]] = None,
+    ) -> SUMMARYHeader:
+
+        new = deepcopy(self)
+
+        if obj_name is not None:
+            for new_name, old_names in obj_name.items():
+                for on in old_names:
+                    new.Names[new.Names == on] = new_name
+
+        if num_name is not None:
+            for new_name, old_names in num_name.items():
+                for on in old_names:
+                    new.Num[new.Num == on] = new_name
+
+        return new
+
+    def to_dataframe(self) -> pd.DataFrame:
+        df = pd.DataFrame()
+        df["Keyword"] = self.Keywords.astype(str)
+        df["Name"] = self.Names.astype(str)
+        df["Num"] = self.Num.astype(int)
+        df["Unit"] = self.Unit.astype(str)
+        return df
+
+    def duplicated(self) -> pd.DataFrame:
+        df = self.to_dataframe()
+        duplicate = df.duplicated(keep=False)
+        df["Duplicate"] = duplicate
+        return df
+
+    def compact(self) -> SUMMARYHeader:
+        df = self.to_dataframe()
+        duplicate = df.duplicated()
+        uniq = df[duplicate]
+        return SUMMARYHeader(
+            uniq["Keyword"].values,
+            uniq["Name"].values,
+            uniq["Num"].values,
+            uniq["Unit"].values,
+        )
+
 
 class SUMMARY(EclipseBinaryData):
     def __init__(
@@ -181,6 +229,38 @@ class SUMMARY(EclipseBinaryData):
 
     def get_group_name(self) -> List[str]:
         return self.Header.group_name()
+
+    def replace_name(
+        self,
+        obj_name: Dict[Union[str, int], Iterable[Union[str, int]]] = None,
+        num_name: Dict[Union[str, int], Iterable[Union[str, int]]] = None,
+    ) -> SUMMARY:
+        new_header = self.Header.replace_name(obj_name, num_name)
+        return SUMMARY(self.CalcName, self.values, self.TimeVector, new_header)
+
+    def compact(self) -> SUMMARY:
+        new = deepcopy(self)
+        df = self.Header.duplicated()
+        duplicate_df = df[df["Duplicate"]]
+        uniq_duplicate = duplicate_df[["Keyword", "Name", "Num"]].drop_duplicates()
+        for_del = []
+        for rid, row in uniq_duplicate.iterrows():
+            target_df = duplicate_df[
+                (duplicate_df["Keyword"] == row["Keyword"])
+                & (duplicate_df["Name"] == row["Name"])
+                & (duplicate_df["Num"] == row["Num"])
+            ]
+            target_value = self.values[:, target_df.index.values]
+            new_value = np.sum(target_value, axis=1)
+            new.values[:, rid] = new_value
+            target_for_del = target_df[target_df.index.values != rid]
+            for_del.extend(target_for_del.index.values)
+            pass
+        pattern = np.ones(self.values.shape[1]).astype(bool)
+        pattern[for_del] = False
+        new.values = new.values[:, pattern]
+        new.Header = self.Header.compact()
+        return new
 
 
 class SUMMARYList(list):

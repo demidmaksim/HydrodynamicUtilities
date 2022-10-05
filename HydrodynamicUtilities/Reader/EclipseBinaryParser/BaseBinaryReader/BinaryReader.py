@@ -47,7 +47,8 @@ class BinaryReader:
         data = RowBinaryData()
 
         with open(link, "rb") as file:
-            while file.tell() < os.path.getsize(link):
+            file_size = os.path.getsize(link)
+            while file.tell() < file_size:
                 header = HeaderConstructor.create("binary file", file=file)
                 byte = cls.read_area(file, header)
                 data.append(Content(header, byte))
