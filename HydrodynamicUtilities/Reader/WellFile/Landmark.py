@@ -15,11 +15,11 @@ def get_wname(string_data: str) -> str:
 
 
 def get_xyzmd(
-        data: Iterable[str],
-        x_ind: int = 1,
-        y_ind: int = 2,
-        z_ind: int = 0,
-        # md_ind: int = 3,
+    data: Iterable[str],
+    x_ind: int = 1,
+    y_ind: int = 2,
+    z_ind: int = 0,
+    # md_ind: int = 3,
 ) -> Tuple[
     np.ndarray,
     np.ndarray,
@@ -37,7 +37,7 @@ def get_xyzmd(
         z.append(line_data[z_ind])
         # md.append(line_data[md_ind])
 
-    return np.array(x), np.array(y), np.array(z) #,  np.array(md)
+    return np.array(x), np.array(y), np.array(z)  # ,  np.array(md)
 
 
 def convert_to_well(string_data: str) -> Trajectory:
@@ -47,7 +47,6 @@ def convert_to_well(string_data: str) -> Trajectory:
     wname = get_wname(data.pop(0))
     x, y, z = get_xyzmd(data)
     return
-
 
 
 def read_file(file: Path):

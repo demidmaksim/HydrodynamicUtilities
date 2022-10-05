@@ -12,6 +12,7 @@ from .BinaryData import EclipseBinaryData
 
 from ..Time import TimeVector as Time
 from typing import Iterable
+from ..ParamVector import TimeSeries
 
 
 class SUMMARYHeader:
@@ -164,6 +165,11 @@ class SUMMARY(EclipseBinaryData):
         new_df = self.values[:, index]
         new_header = self.Header.new(index)
         return SUMMARY(self.CalcName, new_df, self.TimeVector, new_header)
+
+    def to_time_series(self) -> TimeSeries:
+        if self.shape[1] != 1:
+            raise ValueError
+        return TimeSeries(self.TimeVector, self.values.T[0])
 
     @property
     def shape(self) -> Tuple[int, int]:

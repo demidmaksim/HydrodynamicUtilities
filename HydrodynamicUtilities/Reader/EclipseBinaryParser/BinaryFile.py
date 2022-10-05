@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from typing import Dict, Any, Union
-    from HydrodynamicModelAnalysis.Models.EclipseBinaryFile import (
+    from HydrodynamicUtilities.Models.EclipseBinaryFile import (
         SUMMARY,
         EclipseBinaryData,
     )
@@ -19,12 +19,12 @@ import time
 from pathlib import Path
 
 from .BaseBinaryReader import BinaryReader
-from HydrodynamicModelAnalysis.Models.EclipseBinaryFile import (
+from HydrodynamicUtilities.Models.EclipseBinaryFile import (
     SUMMARYHeader,
     BinaryData,
     SUMMARY,
 )
-from HydrodynamicModelAnalysis.Models import TimeVector as Time
+from HydrodynamicUtilities.Models.Time import TimeVector as Time
 
 
 class Convertor:

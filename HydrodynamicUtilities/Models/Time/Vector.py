@@ -91,7 +91,7 @@ class TimeVector:
     def __repr__(self) -> str:
         return f"TimeVector {len(self.Dates)}"
 
-    def __iter__(self) -> Iterator:
+    def __iter__(self) -> Iterator[np.datetime64]:
         return iter(self.to_datetime64())
 
     def __getitem__(self, item: Any) -> Optional[TimeVector, TimePoint]:

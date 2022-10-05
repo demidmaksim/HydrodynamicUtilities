@@ -170,6 +170,33 @@ class TimeSeries:
         new.Data[:] = self.Data.values.cumsum()
         return new
 
+    def cumsum_time(self) -> TimeSeries:
+        value = self.Data.values
+        tv = self.get_time()
+        delta_time = (tv[1:] - tv[:-1]).Delta / np.timedelta64(1, "D")
+        delta_val = value[:-1] * delta_time
+        cum_val = delta_val.cumsum()
+        results_val = np.zeros(value.shape)
+        results_val[1:] = cum_val
+        return TimeSeries(tv, results_val)
+
+    def to_interpolation_model(
+        self,
+        step: str = "D",
+        kind: str = "linear",
+        copy: bool = True,
+        bounds_error: Union[bool, str] = True,
+        fill_value: Union[Union[float, int], Tuple[float, float]] = np.NAN,
+    ) -> InterpolationModel:
+        return InterpolationModel(
+            self,
+            step,
+            kind,
+            copy,
+            bounds_error,
+            fill_value,
+        )
+
 
 class StatusVector(TimeSeries):
     def get_downtime_flag(self) -> TimeSeries:

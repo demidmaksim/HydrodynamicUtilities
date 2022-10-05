@@ -4,6 +4,7 @@ from typing import Dict, BinaryIO, Iterator
 from .Header import HeaderConstructor, Header
 from .Content import Content
 from pathlib import Path
+import time
 
 
 class RowBinaryData:
@@ -50,5 +51,4 @@ class BinaryReader:
                 header = HeaderConstructor.create("binary file", file=file)
                 byte = cls.read_area(file, header)
                 data.append(Content(header, byte))
-
-            return data
+        return data
