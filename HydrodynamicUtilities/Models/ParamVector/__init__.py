@@ -2,5 +2,6 @@ from .Interpolation import (
     InterpolationModel,
     StringInterpolationModel,
     TimeSeries,
-    StatusVector,
 )
+
+from .Special import TimeSeries

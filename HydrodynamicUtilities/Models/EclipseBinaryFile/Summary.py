@@ -138,7 +138,7 @@ class SUMMARYHeader:
     def replace_name(
         self,
         obj_name: Dict[Union[str, int], Iterable[Union[str, int]]] = None,
-        num_name: Dict[Union[str, int], Iterable[Union[str, int]]] = None,
+        # num_name: Dict[Union[str, int], Iterable[Union[str, int]]] = None,
     ) -> SUMMARYHeader:
 
         new = deepcopy(self)
@@ -148,10 +148,12 @@ class SUMMARYHeader:
                 for on in old_names:
                     new.Names[new.Names == on] = new_name
 
+        """
         if num_name is not None:
             for new_name, old_names in num_name.items():
                 for on in old_names:
                     new.Num[new.Num == on] = new_name
+        """
 
         return new
 
@@ -182,6 +184,65 @@ class SUMMARYHeader:
 
 
 class SUMMARY(EclipseBinaryData):
+
+    __well_flow_keyword = (
+        "WOPR",
+        "WWPR",
+        "WGPR",
+        "WOIR",
+        "WWIR",
+        "WGIR",
+    )
+
+    __well_total_keyword = (
+        "WOPT",
+        "WWPT",
+        "WGPT",
+        "WOIT",
+        "WWIT",
+        "WGIT",
+    )
+
+    __well_pressure = (
+        "WBHP",
+        "WTHP",
+    )
+
+    __wel_reservoir_rate_conditions = (
+        "WOVPR",
+        "WWVPR",
+        "WGVPR",
+        "WOVIR",
+        "WWVIR",
+        "WGVIR",
+    )
+
+    __wel_reservoir_total_conditions = (
+        "WOVPT",
+        "WWVPT",
+        "WGVPT",
+        "WOVIT",
+        "WWVIT",
+        "WGVIT",
+    )
+
+    __segment_flow = (
+        "SOFR",
+        "SWFR",
+        "SGFR",
+    )
+
+    __segment_total = (
+        "SOFT",
+        "SWFT",
+        "SGFT",
+    )
+
+    __segment_pressure = (
+        "SPR",
+        "SPRD",
+    )
+
     def __init__(
         self,
         calc_name: str,
@@ -205,14 +266,45 @@ class SUMMARY(EclipseBinaryData):
 
     def get(
         self,
-        keywords: Union[List[str], str] = None,
-        names: Union[List[str], str] = None,
-        num: Union[List[str], str] = None,
+        keywords: Union[Iterable[str], str] = None,
+        names: Union[Iterable[str], str] = None,
+        num: Union[Iterable[str], str] = None,
     ) -> SUMMARY:
         index = self.Header.index(keywords, names, num)
         new_df = self.values[:, index]
         new_header = self.Header.new(index)
         return SUMMARY(self.CalcName, new_df, self.TimeVector, new_header)
+
+    def get_request(
+            self,
+            well_flow: bool = False,
+            well_total: bool = False,
+            well_pressure: bool = False,
+            wel_reservoir_rate_conditions: bool = False,
+            wel_reservoir_total_conditions: bool = False,
+            segment_flow: bool = False,
+            segment_total: bool = False,
+            segment_pressure: bool = False,
+    ) -> SUMMARY:
+        target_kw = []
+        if well_flow:
+            target_kw.extend(self.__well_flow_keyword)
+        if well_total:
+            target_kw.extend(self.__well_total_keyword)
+        if well_pressure:
+            target_kw.extend(self.__well_pressure)
+        if wel_reservoir_rate_conditions:
+            target_kw.extend(self.__wel_reservoir_rate_conditions)
+        if wel_reservoir_total_conditions:
+            target_kw.extend(self.__wel_reservoir_total_conditions)
+        if segment_flow:
+            target_kw.extend(self.__segment_flow)
+        if segment_total:
+            target_kw.extend(self.__segment_total)
+        if segment_pressure:
+            target_kw.extend(self.__segment_total)
+
+        return self.get(keywords=target_kw)
 
     def to_time_series(self) -> TimeSeries:
         if self.shape[1] != 1:
@@ -230,12 +322,34 @@ class SUMMARY(EclipseBinaryData):
     def get_group_name(self) -> List[str]:
         return self.Header.group_name()
 
+    def replace_name_from_df(
+            self,
+            df: pd.DataFrame,
+            old_wname: str = "Скважина в модели",
+            new_wname: str = "Скважина",
+            old_sname: str = "Сегмент",
+            new_sname: str = "Пачка",
+    ) -> SUMMARY:
+        well_target_df = df[[old_wname, new_wname]]
+        well_results = dict()
+        for well in pd.unique(well_target_df[new_wname]):
+            val = well_target_df[well_target_df[new_wname] == well].values
+            well_results[well] = pd.unique(val.T[0])
+
+        segm_target_df = df[[old_sname, new_sname]]
+        segm_results = dict()
+        for segm in pd.unique(segm_target_df[new_sname]):
+            val = segm_target_df[segm_target_df[new_sname] == segm].values
+            segm_results[segm] = pd.unique(val.T[0])
+
+        return self.replace_name(obj_name=well_results, num_name=segm_results)
+
     def replace_name(
         self,
         obj_name: Dict[Union[str, int], Iterable[Union[str, int]]] = None,
-        num_name: Dict[Union[str, int], Iterable[Union[str, int]]] = None,
+        # num_name: Dict[Union[str, int], Iterable[Union[str, int]]] = None,
     ) -> SUMMARY:
-        new_header = self.Header.replace_name(obj_name, num_name)
+        new_header = self.Header.replace_name(obj_name)
         return SUMMARY(self.CalcName, self.values, self.TimeVector, new_header)
 
     def compact(self) -> SUMMARY:
@@ -261,6 +375,41 @@ class SUMMARY(EclipseBinaryData):
         new.values = new.values[:, pattern]
         new.Header = self.Header.compact()
         return new
+
+
+class FieldSUMMARY:
+    def __init__(
+            self,
+            wells: Iterable[WellSUMMARY],
+            group: Iterable[WellSUMMARY]
+    ) -> None:
+        self.Wells = wells
+        self.Group = group
+
+
+class GroupSUMMARY:
+    def __init__(self, data: SUMMARY) -> None:
+        self.Data = data
+
+
+class WellSUMMARY:
+    def __init__(
+            self,
+            well_head_summary: WellHeadSUMMARY,
+            segment_summary: Iterable[SegmentSUMMARY],
+    ) -> None:
+        self.WellHead = well_head_summary
+        self.Segments = list(segment_summary)
+
+
+class WellHeadSUMMARY:
+    def __init__(self, data: SUMMARY) -> None:
+        self.Data = data
+
+
+class SegmentSUMMARY:
+    def __init__(self, data: SUMMARY) -> None:
+        self.Data = data
 
 
 class SUMMARYList(list):
