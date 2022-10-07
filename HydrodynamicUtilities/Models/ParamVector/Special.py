@@ -139,7 +139,7 @@ class CumTimeSeriasParam(TimeSeries):
             fill_value=(value[0], value[-1]),
         )
         new_value = model.get_value(tv)
-        return CumTimeSeriasParam(self.get_time(), new_value.values)
+        return CumTimeSeriasParam(tv, new_value.values)
 
 
 class PeriodTimeSeriasParam(TimeSeries):

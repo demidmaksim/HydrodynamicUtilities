@@ -276,15 +276,15 @@ class SUMMARY(EclipseBinaryData):
         return SUMMARY(self.CalcName, new_df, self.TimeVector, new_header)
 
     def get_request(
-            self,
-            well_flow: bool = False,
-            well_total: bool = False,
-            well_pressure: bool = False,
-            wel_reservoir_rate_conditions: bool = False,
-            wel_reservoir_total_conditions: bool = False,
-            segment_flow: bool = False,
-            segment_total: bool = False,
-            segment_pressure: bool = False,
+        self,
+        well_flow: bool = False,
+        well_total: bool = False,
+        well_pressure: bool = False,
+        wel_reservoir_rate_conditions: bool = False,
+        wel_reservoir_total_conditions: bool = False,
+        segment_flow: bool = False,
+        segment_total: bool = False,
+        segment_pressure: bool = False,
     ) -> SUMMARY:
         target_kw = []
         if well_flow:
@@ -323,12 +323,12 @@ class SUMMARY(EclipseBinaryData):
         return self.Header.group_name()
 
     def replace_name_from_df(
-            self,
-            df: pd.DataFrame,
-            old_wname: str = "Скважина в модели",
-            new_wname: str = "Скважина",
-            old_sname: str = "Сегмент",
-            new_sname: str = "Пачка",
+        self,
+        df: pd.DataFrame,
+        old_wname: str = "Скважина в модели",
+        new_wname: str = "Скважина",
+        old_sname: str = "Сегмент",
+        new_sname: str = "Пачка",
     ) -> SUMMARY:
         well_target_df = df[[old_wname, new_wname]]
         well_results = dict()
@@ -379,9 +379,7 @@ class SUMMARY(EclipseBinaryData):
 
 class FieldSUMMARY:
     def __init__(
-            self,
-            wells: Iterable[WellSUMMARY],
-            group: Iterable[WellSUMMARY]
+        self, wells: Iterable[WellSUMMARY], group: Iterable[WellSUMMARY]
     ) -> None:
         self.Wells = wells
         self.Group = group
@@ -394,9 +392,9 @@ class GroupSUMMARY:
 
 class WellSUMMARY:
     def __init__(
-            self,
-            well_head_summary: WellHeadSUMMARY,
-            segment_summary: Iterable[SegmentSUMMARY],
+        self,
+        well_head_summary: WellHeadSUMMARY,
+        segment_summary: Iterable[SegmentSUMMARY],
     ) -> None:
         self.WellHead = well_head_summary
         self.Segments = list(segment_summary)

@@ -1,124 +1,311 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Union, List, Tuple
+
+from typing import Iterable
+
 import xlsxwriter as xlsw
-from HydrodynamicModelAnalysis.Models.EclipseBinaryFile import SUMMARY
-from HydrodynamicModelAnalysis.Models import TimePoint, generate_time_vector
-from HydrodynamicModelAnalysis.Models import create_from_summary, PeriodCalcResults
+from HydrodynamicUtilities.Models.EclipseBinaryFile import SUMMARY
+from HydrodynamicUtilities.Models.ParamVector import Interpolation, CumTimeSeriasParam
+from HydrodynamicUtilities.Models.Time import TimeVector, generate_time_vector
 
 import pandas as pd
+import numpy as np
+from copy import deepcopy
 
 
-def data_preparation(
-    summary: SUMMARY, start: TimePoint, end: TimePoint, step: str, value_step: int
-) -> PeriodCalcResults:
-    target_param = (
-        "WOPT",
-        "WWPT",
-        "WGPT",
-        "WWIT",
-        "WGIT",
-        # "WBHP",
-        # "WBP9",
-        "WWTT",
-    )
+def get_all_names(summary: Iterable[SUMMARY]) -> Tuple[List[str], List[str]]:
+    all_well_name = []
+    all_grup_name = []
 
-    tv = generate_time_vector(start, end, step, value_step)
-    df = create_from_summary(summary, target_param)
-    models = df.to_inter_model()
-    return models.to_period_results(tv)
+    for sum in summary:
+        all_well_name.extend(sum.get_well_names())
+        all_grup_name.extend(sum.get_group_name())
+
+    return all_well_name, all_grup_name
 
 
-def create(
-    summary: SUMMARY,
-    start: TimePoint,
-    end: TimePoint,
-    step: str,
-    value_step: int,
-    file_name: str = "Test.xlsx",
+def get_all_time(summary: Iterable[SUMMARY]) -> TimeVector:
+    tv = deepcopy(summary[0].TimeVector)
+    for sum in summary[1:]:
+        tv.extend(sum.TimeVector)
+
+    add_tv = generate_time_vector(tv.min, tv.max, "M", value_step=1)
+    tv.extend(add_tv)
+    return tv
+
+
+def write_time(
+    sheet: xlsw.workbook.Worksheet,
+    book: xlsw.workbook.Workbook,
+    tv: TimeVector,
+    row: int,
+    col: int,
 ) -> None:
-    data = data_preparation(summary, start, end, step, value_step)
-    book = xlsw.Workbook(file_name)
+    time_format = book.add_format({"num_format": "yyyy-mm-dd hh:mm:ss"})
+    for tid, tp in enumerate(tv.to_datetime_list()):
+        sheet.write_datetime(row + tid, col, tp, time_format)
+
+
+def create_data_sheet(
+    book: xlsw.Workbook,
+    summary: Union[SUMMARY, Iterable[SUMMARY]],
+) -> None:
+
+    if isinstance(summary, SUMMARY):
+        summary = [summary]
+
+    target = {
+        "OPT": "Нак. нефть",
+        "WPT": "Нак. вода",
+        "GPT": "Нак. газ",
+        "OIT": "Нак. зак. нефти",
+        "WIT": "Нак. зак. воды",
+        "GIT": "Нак. зак. газа",
+        "OMT": "Нак. мас. нефть",
+        "WMT": "Нак. мас. вода",
+        "GMT": "Нак. мас. газ",
+        "WTT": "Нак. время работы",
+    }
     sheet = book.add_worksheet("Data")
-    sheet.merge_range(0, 0, 1, 0, "Месторождение")
-    sheet.merge_range(0, 1, 1, 1, "Объект")
-    sheet.merge_range(0, 2, 1, 2, "Скважина")
-    sheet.merge_range(0, 3, 1, 3, "Период")
-    sheet.merge_range(0, 4, 1, 4, "Начало")
-    sheet.merge_range(0, 5, 1, 5, "Окончание")
-    sheet.merge_range(0, 6, 1, 6, "Время работы")
-    sheet.merge_range(0, 7, 0, 9, "Время работы")
-    sheet.merge_range(0, 10, 0, 12, "Закачка")
-    sheet.merge_range(0, 13, 0, 14, "Давление")
+    tv = get_all_time(summary)
+    write_time(sheet, book, tv, 5, 0)
+    all_well_name, all_grup_name = get_all_names(summary)
 
-    sheet.write(1, 7, "Нефть")
-    sheet.write(1, 8, "Вода")
-    sheet.write(1, 9, "Газ")
+    i = 1
+    for sum in summary:
+        for kw, kwl in target.items():
+            for wn in all_well_name:
+                wkw = f"W{kw}"
+                sheet.write(0, i, i)
+                sheet.write(1, i, sum.CalcName)
+                sheet.write(2, i, wn)
+                sheet.write(3, i, kwl)
+                sheet.write(4, i, "---")
+                data = sum.get(wkw, wn)
+                if data.shape[1] != 0:
+                    ts = CumTimeSeriasParam(data.TimeVector, data.values)
+                    value = ts.retime(tv)
+                    sheet.write_column(5, i, value.values)
+                i += 1
 
-    sheet.write(1, 10, "Нефть")
-    sheet.write(1, 11, "Вода")
-    sheet.write(1, 12, "Газ")
+            """
+            for wn in all_grup_name:
+                wkw = f"G{kw}"
+                sheet.write(0, i, i)
+                sheet.write(1, i, sum.CalcName)
+                sheet.write(2, i, wn)
+                sheet.write(3, i, kwl)
+                sheet.write(4, i, "---")
+                data = sum.get(wkw, wn)
+                if data.shape[1] != 0:
+                    ts = CumTimeSeriasParam(data.TimeVector, data.values)
+                    value = ts.retime(tv)
+                    sheet.write_column(5, i, value.values)
+                i += 1
+            """
 
-    sheet.write(1, 13, "BHP")
-    sheet.write(1, 14, "THP")
 
-    sheet.write_row(
-        3,
-        0,
-        (
-            "---",
-            "---",
-            "---",
-            "---",
-            "---",
-            "---",
-            "сут",
-            "ст. м3",
-            "ст. м3",
-            "ст. м3",
-            "ст. м3",
-            "ст. м3",
-            "ст. м3",
-            "Бар",
-            "Бар",
-        ),
+def create_object_sheet(
+    book: xlsw.Workbook,
+    summary: Union[SUMMARY, Iterable[SUMMARY]],
+) -> None:
+
+    target = {
+        "OPT": "Нак. нефть",
+        "WPT": "Нак. вода",
+        "GPT": "Нак. газ",
+        "OIT": "Нак. зак. нефти",
+        "WIT": "Нак. зак. воды",
+        "GIT": "Нак. зак. газа",
+        "OMT": "Нак. мас. нефть",
+        "WMT": "Нак. мас. вода",
+        "GMT": "Нак. мас. газ",
+        "WTT": "Нак. время работы",
+    }
+
+    if isinstance(summary, SUMMARY):
+        summary = [summary]
+
+    sheet = book.add_worksheet("Objects")
+    all_well_name, all_grup_name = get_all_names(summary)
+    names = all_well_name + all_grup_name
+    sheet.write_row(0, 4, names)
+
+    tv = get_all_time(summary)
+    tv = generate_time_vector(tv.min, tv.max, "M", value_step=1)
+    write_time(sheet, book, tv, 2, 3)
+
+    name = []
+    for sum in summary:
+        name.append(sum.CalcName)
+
+    sheet.write(2, 0, "Model")
+    sheet.write(3, 0, "Parameter")
+    sheet.write(4, 0, "Multiplier")
+    # sheet.write(3, 0, "Multiplier")
+
+    tar = [
+        "Добыча воды",
+        "Добыча газа",
+        "Закачка воды",
+        "Закачка газа",
+        "Добыча нефти",
+        "Время работы",
+        "Дебит воды",
+        "Дебит нефти",
+        "Дебит газа",
+        "Приемистость воды",
+        "Приемистость газа",
+        "Накопл. вода",
+        "Накопл. газ",
+        "Накопл. закачка воды",
+        "Накопл. закачка газа",
+        "Накопл. массовая добыча нефти",
+        "Накопленное время работы",
+    ]
+    mul = [" ", "тыс.", "млн.", "млрд."]
+
+    sheet.write(2, 1, name[0])
+    sheet.write(3, 1, tar[0])
+    sheet.write(4, 0, "")
+
+    sheet.data_validation("B3", {"validate": "list", "source": name})
+    sheet.data_validation("B4", {"validate": "list", "source": tar})
+    sheet.data_validation("B5", {"validate": "list", "source": mul})
+
+    r = (
+        "=("
+        "    VLOOKUP("
+        "         INDEX("
+        "                $1:$1048576;"
+        "                ROW()+1;"
+        "                4"
+        "               );"
+        "         Data!$1:$1048576;"
+        "         1+SUMIFS("
+        "                Data!$1:$1;"
+        "                Data!$2:$2;"
+        "                $B$3;"
+        "                Data!$3:$3;"
+        "                INDEX($1:$1;COLUMN());"
+        "                Data!$4:$4;"
+        "                VLOOKUP("
+        "                    $B$4;"
+        "                    TL!$1:$1048576;"
+        "                    2;"
+        "                    False"
+        "                   )"
+        "               );"
+        "         False"
+        "       )"
+        "    -VLOOKUP("
+        "         INDEX("
+        "                $1:$1048576;"
+        "                ROW();"
+        "                4"
+        "               );"
+        "         Data!$1:$1048576;"
+        "         1+SUMIFS("
+        "                Data!$1:$1;"
+        "                Data!$2:$2;"
+        "                $B$3;"
+        "                Data!$3:$3;"
+        "                INDEX($1:$1;COLUMN());"
+        "                Data!$4:$4;"
+        "                VLOOKUP("
+        "                    $B$4;"
+        "                    TL!$1:$1048576;"
+        "                    2;"
+        "                    False"
+        "                   )"
+        "               );"
+        "         False"
+        "       )"
+        "    *IF("
+        "         VLOOKUP("
+        "             $B$4;"
+        "             TL!$1:$1048576;"
+        "             3;"
+        "             False"
+        '             )="Тотал";'
+        "         0;"
+        "         1"
+        "        )"
+        ")"
+        "/IF("
+        "       $B$5=млрд.;"
+        "       10^9;"
+        "       IF("
+        "           $B$5=млн.;"
+        "           10^6;"
+        "           IF("
+        "               $B$5=тыс.;"
+        "               10^3;"
+        "               1"
+        "              )"
+        "         )"
+        ")"
+        "/IF("
+        "       VLOOKUP("
+        "              $C$1;"
+        "              TL!$C:$E;"
+        "              3;"
+        "              False"
+        '          )="Расход";'
+        "          INDEX("
+        "                $1:$1048576;"
+        "                ROW()+1;"
+        "                4"
+        "               )"
+        "          -INDEX("
+        "                $1:$1048576;"
+        "                ROW();"
+        "                4"
+        "               );"
+        "       1"
+        ")"
     )
+    res = r.replace(" ", "")
+    for col in range(len(names)):
+        for row in range(len(tv.to_datetime64())):
+            sheet.write_formula(row + 2,col + 4, res)
 
-    sheet.write_row(4, 0, range(1, 16))
 
-    i = 0
-    for obj in pd.unique(data.df[data.ObjectName].values):
-        obj_data = data.get_object(obj)
+def create_tl(
+    book: xlsw.Workbook,
+    summary: Union[SUMMARY, Iterable[SUMMARY]],
+):
+    data = [
+        ["Добыча воды", "Нак. вода", "Период"],
+        ["Добыча газа", "Нак. газ", "Период"],
+        ["Закачка воды", "Нак. зак. воды", "Период"],
+        ["Закачка газа", "Нак. зак. газа", "Период"],
+        ["Добыча нефти", "Нак. мас. нефть", "Период"],
+        ["Время работы", "Нак. время работы", "Период"],
+        ["Дебит воды", "Нак. вода", "Расход"],
+        ["Дебит нефти", "Нак. мас нефть", "Расход"],
+        ["Дебит газа", "Нак. газ", "Расход"],
+        ["Приемистость воды", "Нак. зак воды", "Расход"],
+        ["Приемистость газа", "Нак. зак газа", "Расход"],
+        ["Накопл. вода", "Нак. вода", "Тотал"],
+        ["Накопл. газ", "Нак. газ", "Тотал"],
+        ["Накопл. закачка воды", "Нак. зак. воды", "Тотал"],
+        ["Накопл. закачка газа", "Нак. зак. газа", "Тотал"],
+        ["Накопл. массовая добыча нефти", "Нак. мас. нефть", "Тотал"],
+        ["Накопленное время работы", "Нак. время работы", "Тотал"],
+    ]
+    sheet = book.add_worksheet("TL")
+    for rid, row in enumerate(data):
+        sheet.write_row(rid, 0, row)
 
-        if obj_data is None:
-            raise ValueError
 
-        for pid, param in enumerate(pd.unique(data.df[data.ParamName].values)):
-
-            pdata = obj_data.get_param(param)
-
-            if pdata is None:
-                raise ValueError
-
-            if pid == 0:
-                sheet.write_column(5 + i, 2, pdata.df[data.ObjectName].values)
-                sheet.write_column(5 + i, 3, pdata.df[data.PeriodName].values)
-                sheet.write_column(5 + i, 4, pdata.df[data.StartPeriod].values)
-                sheet.write_column(5 + i, 5, pdata.df[data.EndPeriod].values)
-
-            if param == "WWTT":
-                sheet.write_column(5 + i, 6, pdata.df[data.Value].values)
-            if param == "WOPT":
-                sheet.write_column(5 + i, 7, pdata.df[data.Value].values)
-            if param == "WWPT":
-                sheet.write_column(5 + i, 8, pdata.df[data.Value].values)
-            if param == "WGPT":
-                sheet.write_column(5 + i, 9, pdata.df[data.Value].values)
-            if param == "WOIT":
-                sheet.write_column(5 + i, 10, pdata.df[data.Value].values)
-            if param == "WWIT":
-                sheet.write_column(5 + i, 11, pdata.df[data.Value].values)
-            if param == "WGIT":
-                sheet.write_column(5 + i, 12, pdata.df[data.Value].values)
-
-            if pid == len(pd.unique(data.df[data.ParamName].values)) - 1:
-                i += len(pdata.df.values)
-
+def create(summary: SUMMARY):
+    book = xlsw.Workbook("Test.xlsx")
+    create_data_sheet(book, summary)
+    create_tl(book, summary)
+    create_object_sheet(book, summary)
     book.close()

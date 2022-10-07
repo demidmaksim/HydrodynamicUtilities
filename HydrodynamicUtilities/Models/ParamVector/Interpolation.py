@@ -15,6 +15,10 @@ from ..Time import TimeVector, TimePoint, TimeDelta
 
 class TimeSeries:
     def __init__(self, time: TimeVector, data: np.ndarray) -> None:
+        if len(data.shape) == 2:
+            if data.shape[1] == 1:
+                data = data.T[0]
+
         self.Data = pd.Series(data=data, index=time.to_frame_index())
 
     def __setitem__(self, key: Any, value: Any) -> None:

@@ -4,4 +4,9 @@ from .Interpolation import (
     TimeSeries,
 )
 
-from .Special import TimeSeries
+from .Special import (
+    StatusVector,
+    CumTimeSeriasParam,
+    PeriodTimeSeriasParam,
+    RateTimeSeriasParam,
+)
