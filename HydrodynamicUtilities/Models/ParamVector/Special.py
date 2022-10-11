@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import Union, Dict, Tuple, List, Optional, Any
+    from typing import Union, Any
 
 import numpy as np
 import pandas as pd
@@ -189,15 +189,26 @@ class RateTimeSeriasParam(TimeSeries):
         data: np.ndarray,
         time_step: str = "D",
         start_value: Union[float, int] = 0,
+        method: str = "right",
     ) -> None:
         super().__init__(time, data)
         self.TimeStep = time_step
         self.StartValue = start_value
+        self.Method = method
+
+    def __getitem__(self, item: Any) -> RateTimeSeriasParam:
+        return RateTimeSeriasParam(
+            self.get_time()[item],
+            self.Data.values[item],
+            self.TimeStep,
+            self.StartValue,
+            self.Method,
+        )
 
     def get_base_timedelta64(self) -> np.timedelta64:
         return np.timedelta64(1, self.TimeStep)
 
-    def get_cum_serias(self) -> CumTimeSeriasParam:
+    def __right_get_cum_series(self) -> CumTimeSeriasParam:
         value = self.Data.values
         tv = self.get_time()
         delta_time = (tv[1:] - tv[:-1]).Delta / self.get_base_timedelta64()
@@ -206,6 +217,24 @@ class RateTimeSeriasParam(TimeSeries):
         results_val = np.ones(value.shape) * self.StartValue
         results_val[1:] = results_val[1:] + cum_val
         return CumTimeSeriasParam(tv, results_val)
+
+    def __left_get_cum_series(self) -> CumTimeSeriasParam:
+        value = self.Data.values
+        tv = self.get_time()
+        delta_time = (tv[1:] - tv[:-1]).Delta / self.get_base_timedelta64()
+        delta_val = value[1:] * delta_time
+        cum_val = delta_val.cumsum()
+        results_val = np.ones(value.shape) * self.StartValue
+        results_val[1:] = results_val[1:] + cum_val
+        return CumTimeSeriasParam(tv, results_val)
+
+    def get_cum_series(self) -> CumTimeSeriasParam:
+        if self.Method == "right":
+            return self.__left_get_cum_series()
+        elif self.Method == "left":
+            return self.__left_get_cum_series()
+        else:
+            raise KeyError
 
     def get_period_serias(self) -> PeriodTimeSeriasParam:
         tv = self.get_time()
@@ -217,6 +246,6 @@ class RateTimeSeriasParam(TimeSeries):
         return PeriodTimeSeriasParam(tv, res, self.TimeStep, self.StartValue)
 
     def retime(self, tv: TimeVector) -> RateTimeSeriasParam:
-        cum_data = self.get_cum_serias()
+        cum_data = self.get_cum_series()
         new_cum_data = cum_data.retime(tv)
         return new_cum_data.get_derivative_serias()

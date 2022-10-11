@@ -13,6 +13,7 @@ from .BinaryData import EclipseBinaryData
 from ..Time import TimeVector as Time
 from typing import Iterable
 from ..ParamVector import TimeSeries
+from ..ParamVector import RateTimeSeriasParam, CumTimeSeriasParam
 from copy import deepcopy
 
 import pandas as pd
@@ -28,7 +29,10 @@ class SUMMARYHeader:
     ) -> None:
         self.Keywords = keywords.astype(str)
         self.Names = names.astype(str)
-        self.Num = num.astype(int)
+        try:
+            self.Num = num.astype(int)
+        except ValueError:
+            self.Num = num.astype(object)
         self.Unit = unit.astype(str)
 
     def __repr__(self) -> str:
@@ -40,22 +44,22 @@ class SUMMARYHeader:
         param: str,
     ) -> Optional[np.ndarray]:
         if param == "keywords":
-            vector = self.Keywords
+            vector = self.Keywords.astype(str)
         elif param == "names":
-            vector = self.Names
+            vector = self.Names.astype(str)
         elif param == "num":
-            vector = self.Num
+            vector = self.Num.astype(str)
         else:
             raise KeyError
 
         pattern: Optional[np.ndarray] = None
 
         if isinstance(values, (np.str, np.number, int, float)):
-            pattern = vector == values
+            pattern = vector == str(values)
 
         else:
             for step in values:
-                step_pattern = vector == step
+                step_pattern = vector == str(step)
                 if pattern is None:
                     pattern = step_pattern
                 else:
@@ -106,16 +110,9 @@ class SUMMARYHeader:
         return list(self.Names)
 
     def well_name(self) -> List[str]:
-        if "WOPR" in self.Keywords:
-            index = self.index("WOPR", None, None)
-            return list(self.Names[index])
-        else:
-            uniq_keywords = pd.unique(self.Keywords)
-            for keywords in uniq_keywords:
-                if keywords[0] == "W":
-                    index = self.index(keywords, None, None)
-                    return list(self.Names[index])
-            return []
+        index = self.get_group_index("wel")
+        wname = pd.unique(self.Names[index])
+        return list(wname)
 
     def group_name(self) -> List[str]:
         if "GOPR" in self.Keywords:
@@ -161,7 +158,10 @@ class SUMMARYHeader:
         df = pd.DataFrame()
         df["Keyword"] = self.Keywords.astype(str)
         df["Name"] = self.Names.astype(str)
-        df["Num"] = self.Num.astype(int)
+        try:
+            df["Num"] = self.Num.astype(int)
+        except ValueError:
+            df["Num"] = self.Num.astype(object)
         df["Unit"] = self.Unit.astype(str)
         return df
 
@@ -181,6 +181,15 @@ class SUMMARYHeader:
             uniq["Num"].values,
             uniq["Unit"].values,
         )
+
+    def get_group_index(self, key: str) -> np.ndarray:
+        df = self.to_dataframe()
+        if key.lower() == "seg":
+            return df["Keyword"].str.contains(r"\bS.*", regex=True).values
+        if key.lower() == "wel":
+            return df["Keyword"].str.contains(r"\bW.*", regex=True).values
+        else:
+            raise KeyError
 
 
 class SUMMARY(EclipseBinaryData):
@@ -275,6 +284,19 @@ class SUMMARY(EclipseBinaryData):
         new_header = self.Header.new(index)
         return SUMMARY(self.CalcName, new_df, self.TimeVector, new_header)
 
+    def get_group(self, key: str) -> SUMMARY:
+        if key.lower() == "seg":
+            index = self.Header.get_group_index("seg")
+            return self.get_from_index(index)
+        if key.lower() == "wel":
+            index = self.Header.get_group_index("wel")
+            return self.get_from_index(index)
+
+    def get_from_index(self, index: np.ndarray) -> SUMMARY:
+        new_df = self.values[:, index]
+        new_header = self.Header.new(index)
+        return SUMMARY(self.CalcName, new_df, self.TimeVector, new_header)
+
     def get_request(
         self,
         well_flow: bool = False,
@@ -311,38 +333,51 @@ class SUMMARY(EclipseBinaryData):
             raise ValueError
         return TimeSeries(self.TimeVector, self.values.T[0])
 
+    def to_cum_time_series(self) -> CumTimeSeriasParam:
+        if self.shape[1] != 1:
+            raise ValueError
+        return CumTimeSeriasParam(self.TimeVector, self.values.T[0])
+
+    def to_rate_time_series(self, method: str = "left") -> RateTimeSeriasParam:
+        if self.shape[1] != 1:
+            raise ValueError
+        return RateTimeSeriasParam(self.TimeVector, self.values.T[0], method="left")
+
     @property
     def shape(self) -> Tuple[int, int]:
         i, j = self.values.shape[0], self.values.shape[1]
         return i, j
 
     def get_well_names(self) -> List[str]:
-        return self.Header.well_name()
+        return pd.unique(self.Header.well_name())
 
     def get_group_name(self) -> List[str]:
         return self.Header.group_name()
 
     def replace_name_from_df(
         self,
-        df: pd.DataFrame,
-        old_wname: str = "Скважина в модели",
-        new_wname: str = "Скважина",
-        old_sname: str = "Сегмент",
-        new_sname: str = "Пачка",
+        old_wname: Iterable,
+        new_wname: Iterable,
+        old_sname: Iterable,
+        new_sname: Iterable,
     ) -> SUMMARY:
-        well_target_df = df[[old_wname, new_wname]]
-        well_results = dict()
-        for well in pd.unique(well_target_df[new_wname]):
-            val = well_target_df[well_target_df[new_wname] == well].values
-            well_results[well] = pd.unique(val.T[0])
+        new = self
+        new.Header.Num = self.Header.Num.astype(str)
+        num = self.Header.Num.astype(str)
+        name = self.Header.Names.astype(str)
+        for ow, nw, os, ns in zip(old_wname, new_wname, old_sname, new_sname):
+            new.Header.Names[(name == str(ow)) & (num == str(os))] = str(nw)
+            new.Header.Num[(name == str(ow)) & (num == str(os))] = ns
 
-        segm_target_df = df[[old_sname, new_sname]]
-        segm_results = dict()
-        for segm in pd.unique(segm_target_df[new_sname]):
-            val = segm_target_df[segm_target_df[new_sname] == segm].values
-            segm_results[segm] = pd.unique(val.T[0])
+        return new
 
-        return self.replace_name(obj_name=well_results, num_name=segm_results)
+    def replace_name_2(self, old_wname: Iterable, new_wname: Iterable) -> SUMMARY:
+        new = deepcopy(self)
+        new.Header.Num = self.Header.Num.astype(str)
+        name = self.Header.Names.astype(str)
+        for ow, nw in zip(old_wname, new_wname):
+            new.Header.Names[name == str(ow)] = str(nw)
+        return new
 
     def replace_name(
         self,
@@ -373,16 +408,81 @@ class SUMMARY(EclipseBinaryData):
         pattern = np.ones(self.values.shape[1]).astype(bool)
         pattern[for_del] = False
         new.values = new.values[:, pattern]
-        new.Header = self.Header.compact()
+        new.Header.Names = new.Header.Names[pattern]
+        new.Header.Num = new.Header.Num[pattern]
+        new.Header.Unit = new.Header.Unit[pattern]
+        new.Header.Keywords = new.Header.Keywords[pattern]
         return new
+
+    def split(
+        self,
+        well: Union[List[str], Tuple[str]] = None,
+        bore: Union[List[str], Tuple[str]] = None,
+        seg: Union[List[str], Tuple[str]] = None,
+    ) -> FieldSUMMARY:
+
+        fsummary = FieldSUMMARY(self.CalcName)
+
+        for wname in self.get_well_names():
+            all_well_summary = self.get(keywords=None, names=wname, num=None)
+
+            if not (seg is None or bore is None or well is None):
+                bore_summarys = []
+                for bname in pd.unique(bore):
+                    bore_seg = seg[bore == bname]
+                    bore_data = all_well_summary.get(num=bore_seg)
+                    bore_summarys.append(BoreSummary(bname, bore_data))
+                wh_summary = WellHeadSUMMARY(all_well_summary.get_group("wel"))
+                well_summary = WellSUMMARY(wname, wh_summary, bore_summarys, None)
+
+            else:
+                wh_summary = WellHeadSUMMARY(all_well_summary.get_group("wel"))
+                s_summary = SegmentSUMMARY(all_well_summary.get_group("seg"))
+                well_summary = WellSUMMARY(wname, wh_summary, None, s_summary)
+
+            fsummary.append(well_summary)
+        return fsummary
 
 
 class FieldSUMMARY:
     def __init__(
-        self, wells: Iterable[WellSUMMARY], group: Iterable[WellSUMMARY]
+        self,
+        calc_name: str,
+        wells: Optional[Iterable[WellSUMMARY]] = None,
+        # group: Optional[Iterable[WellSUMMARY]] = None,
     ) -> None:
-        self.Wells = wells
-        self.Group = group
+        self.CalcName = calc_name
+        self.Wells = dict()
+        if wells is not None:
+            self.extend(wells)
+
+        # if wells is not None:
+        #     self.Group = list(group)
+        # else:
+        #     self.Group = []
+
+    def __repr__(self) -> str:
+        return self.CalcName
+
+    def extend(self, values: Iterable[Union[WellSUMMARY]]) -> None:
+        for val in values:
+            self.append(val)
+
+    def append(self, value: Union[WellSUMMARY]) -> None:
+        if isinstance(value, WellSUMMARY):
+            self.Wells[value.WellName] = value
+
+    def choose_well(self, well_names: Iterable[str]) -> FieldSUMMARY:
+        new = deepcopy(self)
+        new_dict = dict()
+        for wname in well_names:
+            try:
+                new_dict[str(wname)] = self.Wells[str(wname)]
+            except KeyError:
+                pass
+
+        new.Wells = new_dict
+        return new
 
 
 class GroupSUMMARY:
@@ -390,14 +490,56 @@ class GroupSUMMARY:
         self.Data = data
 
 
+class BoreSummary:
+    def __init__(
+        self,
+        bore_name: Union[str, int],
+        bore_summary: SUMMARY,
+    ) -> None:
+        self.Data = bore_summary
+        self.BoreName = bore_name
+
+    def __repr__(self) -> str:
+        return str(self.BoreName)
+
+
 class WellSUMMARY:
     def __init__(
         self,
+        well_name: str,
         well_head_summary: WellHeadSUMMARY,
-        segment_summary: Iterable[SegmentSUMMARY],
+        bore_summary: Optional[Iterable[BoreSummary]] = None,
+        segment_summary: Optional[SegmentSUMMARY] = None,
     ) -> None:
         self.WellHead = well_head_summary
-        self.Segments = list(segment_summary)
+        self.Segments = segment_summary
+        self.WellName = well_name
+
+        if bore_summary is not None:
+            self.Bore = list(bore_summary)
+        else:
+            self.Bore = None
+
+    def __repr__(self) -> str:
+        return self.WellName
+
+    def boring(
+        self,
+        bore: Union[List[str], Tuple[str]] = None,
+        seg: Union[List[str], Tuple[str]] = None,
+    ) -> None:
+        pass
+        if self.Segments is None:
+            return None
+
+        bore_summary = []
+        for bname in pd.unique(bore):
+            bore_seg = seg[bore == bname]
+            bore_data = self.Segments.Data.get(num=bore_seg)
+            bore_summary.append(BoreSummary(bname, bore_data))
+
+        self.Bore = bore_summary
+        self.Segments = None
 
 
 class WellHeadSUMMARY:

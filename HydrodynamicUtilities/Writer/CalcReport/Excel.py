@@ -84,9 +84,10 @@ def create_data_sheet(
                 sheet.write(1, i, sum.CalcName)
                 sheet.write(2, i, wn)
                 sheet.write(3, i, kwl)
-                sheet.write(4, i, "---")
+
                 data = sum.get(wkw, wn)
                 if data.shape[1] != 0:
+                    sheet.write(4, i, data.Header.Unit[0])
                     ts = CumTimeSeriasParam(data.TimeVector, data.values)
                     value = ts.retime(tv)
                     sheet.write_column(5, i, value.values)
@@ -237,13 +238,13 @@ def create_object_sheet(
         "        )"
         ")"
         "/IF("
-        "       $B$5=млрд.;"
+        '       $B$5="млрд.";'
         "       10^9;"
         "       IF("
-        "           $B$5=млн.;"
+        '           $B$5="млн.";'
         "           10^6;"
         "           IF("
-        "               $B$5=тыс.;"
+        '               $B$5="тыс.";'
         "               10^3;"
         "               1"
         "              )"
@@ -251,8 +252,8 @@ def create_object_sheet(
         ")"
         "/IF("
         "       VLOOKUP("
-        "              $C$1;"
-        "              TL!$C:$E;"
+        "              $B$4;"
+        "              TL!$1:$1048576;"
         "              3;"
         "              False"
         '          )="Расход";'
@@ -272,7 +273,7 @@ def create_object_sheet(
     res = r.replace(" ", "")
     for col in range(len(names)):
         for row in range(len(tv.to_datetime64())):
-            sheet.write_formula(row + 2,col + 4, res)
+            sheet.write_formula(row + 2, col + 4, res)
 
 
 def create_tl(
