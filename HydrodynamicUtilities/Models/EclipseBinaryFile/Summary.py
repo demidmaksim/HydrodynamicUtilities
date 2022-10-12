@@ -260,7 +260,7 @@ class SUMMARY(EclipseBinaryData):
         summary_header: SUMMARYHeader,
     ) -> None:
         self.CalcName = calc_name
-        self.values = values
+        self.Values = values
         self.TimeVector = time_vector
         self.Header = summary_header
 
@@ -271,7 +271,7 @@ class SUMMARY(EclipseBinaryData):
                     yield self.get(key, name, num)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__} {self.values.shape}"
+        return f"{self.__class__.__name__} {self.Values.shape}"
 
     def get(
         self,
@@ -280,7 +280,7 @@ class SUMMARY(EclipseBinaryData):
         num: Union[Iterable[str], str] = None,
     ) -> SUMMARY:
         index = self.Header.index(keywords, names, num)
-        new_df = self.values[:, index]
+        new_df = self.Values[:, index]
         new_header = self.Header.new(index)
         return SUMMARY(self.CalcName, new_df, self.TimeVector, new_header)
 
@@ -293,7 +293,7 @@ class SUMMARY(EclipseBinaryData):
             return self.get_from_index(index)
 
     def get_from_index(self, index: np.ndarray) -> SUMMARY:
-        new_df = self.values[:, index]
+        new_df = self.Values[:, index]
         new_header = self.Header.new(index)
         return SUMMARY(self.CalcName, new_df, self.TimeVector, new_header)
 
@@ -328,24 +328,38 @@ class SUMMARY(EclipseBinaryData):
 
         return self.get(keywords=target_kw)
 
-    def to_time_series(self) -> TimeSeries:
-        if self.shape[1] != 1:
-            raise ValueError
-        return TimeSeries(self.TimeVector, self.values.T[0])
+    def to_time_series(self, method: str = None) -> TimeSeries:
+        if method is None:
+            if self.shape[1] != 1:
+                raise ValueError
+            return TimeSeries(self.TimeVector, self.Values.T[0])
+        elif method == "sum":
+            return TimeSeries(self.TimeVector, self.Values.sum(axis=1))
+        else:
+            raise KeyError
 
     def to_cum_time_series(self) -> CumTimeSeriasParam:
         if self.shape[1] != 1:
             raise ValueError
-        return CumTimeSeriasParam(self.TimeVector, self.values.T[0])
+        return CumTimeSeriasParam(self.TimeVector, self.Values.T[0])
 
-    def to_rate_time_series(self, method: str = "left") -> RateTimeSeriasParam:
-        if self.shape[1] != 1:
-            raise ValueError
-        return RateTimeSeriasParam(self.TimeVector, self.values.T[0], method="left")
+    def to_rate_time_series(
+            self,
+            method: str = "left",
+            calc_method: str = None,
+    ) -> RateTimeSeriasParam:
+        if calc_method is None:
+            if self.shape[1] != 1:
+                raise ValueError
+            return RateTimeSeriasParam(self.TimeVector, self.Values.T[0], method="left")
+        elif calc_method == "sum":
+            return RateTimeSeriasParam(self.TimeVector, self.Values.sum(axis=1), method="left")
+        else:
+            raise KeyError
 
     @property
     def shape(self) -> Tuple[int, int]:
-        i, j = self.values.shape[0], self.values.shape[1]
+        i, j = self.Values.shape[0], self.Values.shape[1]
         return i, j
 
     def get_well_names(self) -> List[str]:
@@ -385,7 +399,7 @@ class SUMMARY(EclipseBinaryData):
         # num_name: Dict[Union[str, int], Iterable[Union[str, int]]] = None,
     ) -> SUMMARY:
         new_header = self.Header.replace_name(obj_name)
-        return SUMMARY(self.CalcName, self.values, self.TimeVector, new_header)
+        return SUMMARY(self.CalcName, self.Values, self.TimeVector, new_header)
 
     def compact(self) -> SUMMARY:
         new = deepcopy(self)
@@ -399,15 +413,15 @@ class SUMMARY(EclipseBinaryData):
                 & (duplicate_df["Name"] == row["Name"])
                 & (duplicate_df["Num"] == row["Num"])
             ]
-            target_value = self.values[:, target_df.index.values]
+            target_value = self.Values[:, target_df.index.values]
             new_value = np.sum(target_value, axis=1)
-            new.values[:, rid] = new_value
+            new.Values[:, rid] = new_value
             target_for_del = target_df[target_df.index.values != rid]
             for_del.extend(target_for_del.index.values)
             pass
-        pattern = np.ones(self.values.shape[1]).astype(bool)
+        pattern = np.ones(self.Values.shape[1]).astype(bool)
         pattern[for_del] = False
-        new.values = new.values[:, pattern]
+        new.Values = new.Values[:, pattern]
         new.Header.Names = new.Header.Names[pattern]
         new.Header.Num = new.Header.Num[pattern]
         new.Header.Unit = new.Header.Unit[pattern]
@@ -452,7 +466,7 @@ class FieldSUMMARY:
         # group: Optional[Iterable[WellSUMMARY]] = None,
     ) -> None:
         self.CalcName = calc_name
-        self.Wells = dict()
+        self.Wells: Dict[str, WellSUMMARY] = dict()
         if wells is not None:
             self.extend(wells)
 
@@ -516,7 +530,7 @@ class WellSUMMARY:
         self.WellName = well_name
 
         if bore_summary is not None:
-            self.Bore = list(bore_summary)
+            self.Bore: List[BoreSummary] = list(bore_summary)
         else:
             self.Bore = None
 
@@ -540,6 +554,71 @@ class WellSUMMARY:
 
         self.Bore = bore_summary
         self.Segments = None
+
+    def __get_seg(self, seg_name: str) -> Optional[TimeSeries]:
+        results = None
+        if self.Segments is not None:
+            seg_data = self.Segments.Data
+            data = seg_data.get(keywords=seg_name)
+            if results is None:
+                results = data.to_time_series()
+            else:
+                results = results + data.to_time_series()
+
+        if self.Bore is not None:
+            for bore in self.Bore:
+                seg_data = bore.Data
+                data = seg_data.get(keywords=seg_name)
+                if results is None:
+                    results = data.to_time_series("sum")
+                else:
+                    results = results + data.to_time_series("sum")
+        return results
+
+    def __get_wel(self, w_param: Iterable[str]) -> Optional[TimeSeries]:
+        results = None
+        for param in w_param:
+            if results is None:
+                new = self.WellHead.Data.get(keywords=param)
+                results = new.to_time_series()
+            else:
+                new_sum = self.WellHead.Data.get(keywords=param)
+                new = new_sum.to_cum_time_series()
+                results = results + new
+        return results
+
+    def normalize_segment_param(
+            self,
+            s_param: str,
+            w_param: Union[Iterable[str], str],
+    ) -> None:
+        seg_param = self.__get_seg(s_param)
+        if isinstance(w_param, Iterable):
+            wel_param = self.__get_wel(w_param)
+        else:
+            wel_param = self.__get_wel([w_param])
+
+        if seg_param is None:
+            raise ValueError
+
+        if wel_param is None:
+            raise ValueError
+
+        seg_param[seg_param.Data.values == 0] = 1
+
+        if self.Segments is not None:
+            seg = self.Segments.Data
+            index = seg.Header.index(keywords=s_param)
+            mylt = wel_param / seg_param
+            seg.Values[:, index] = seg.Values[:, index] * abs(mylt.values)
+
+        if self.Bore is not None:
+            for bore in self.Bore:
+                seg = bore.Data
+                index = seg.Header.index(keywords=s_param)
+                mylt = wel_param / seg_param
+                for ind_seg in index:
+                    seg.Values[:, ind_seg] = seg.Values[:, ind_seg] * abs(mylt.values)
 
 
 class WellHeadSUMMARY:
