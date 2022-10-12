@@ -507,8 +507,14 @@ def generate_time_vector(
             v = pd.Series(vector)
             v = pd.Series(pd.unique(v))
             vector = v.sort_values()
-        return TimeVector(vector.values)
-    return TimeVector(vector)
+        results = TimeVector(vector.values)
+        results = results.sort()
+        results = results.unique()
+        return results
+    results = TimeVector(vector)
+    results = results.sort()
+    results = results.unique()
+    return results
 
 
 class NonLinearTime:

@@ -17,6 +17,18 @@ import numpy as np
 from copy import deepcopy
 
 
+class ReportData:
+    def __init__(
+        self,
+        well_names: List[str],
+        group_names: List[str],
+        calc_names: List[str],
+    ) -> None:
+        self.WellNames = well_names
+        self.GroupNames = group_names
+        self.CalcNames = calc_names
+
+
 def get_all_names(summary: Iterable[SUMMARY]) -> Tuple[List[str], List[str]]:
     all_well_name = []
     all_grup_name = []
@@ -93,7 +105,6 @@ def create_data_sheet(
                     sheet.write_column(5, i, value.values)
                 i += 1
 
-            """
             for wn in all_grup_name:
                 wkw = f"G{kw}"
                 sheet.write(0, i, i)
@@ -107,7 +118,6 @@ def create_data_sheet(
                     value = ts.retime(tv)
                     sheet.write_column(5, i, value.values)
                 i += 1
-            """
 
 
 def create_object_sheet(
@@ -182,91 +192,91 @@ def create_object_sheet(
         "=("
         "    VLOOKUP("
         "         INDEX("
-        "                $1:$1048576;"
-        "                ROW()+1;"
+        "                $1:$1048576,"
+        "                ROW()+1,"
         "                4"
-        "               );"
-        "         Data!$1:$1048576;"
+        "               ),"
+        "         Data!$1:$1048576,"
         "         1+SUMIFS("
-        "                Data!$1:$1;"
-        "                Data!$2:$2;"
-        "                $B$3;"
-        "                Data!$3:$3;"
-        "                INDEX($1:$1;COLUMN());"
-        "                Data!$4:$4;"
+        "                Data!$1:$1,"
+        "                Data!$2:$2,"
+        "                $B$3,"
+        "                Data!$3:$3,"
+        "                INDEX($1:$1,COLUMN()),"
+        "                Data!$4:$4,"
         "                VLOOKUP("
-        "                    $B$4;"
-        "                    TL!$1:$1048576;"
-        "                    2;"
+        "                    $B$4,"
+        "                    TL!$1:$1048576,"
+        "                    2,"
         "                    False"
         "                   )"
-        "               );"
+        "               ),"
         "         False"
         "       )"
         "    -VLOOKUP("
         "         INDEX("
-        "                $1:$1048576;"
-        "                ROW();"
+        "                $1:$1048576,"
+        "                ROW(),"
         "                4"
-        "               );"
-        "         Data!$1:$1048576;"
+        "               ),"
+        "         Data!$1:$1048576,"
         "         1+SUMIFS("
-        "                Data!$1:$1;"
-        "                Data!$2:$2;"
-        "                $B$3;"
-        "                Data!$3:$3;"
-        "                INDEX($1:$1;COLUMN());"
-        "                Data!$4:$4;"
+        "                Data!$1:$1,"
+        "                Data!$2:$2,"
+        "                $B$3,"
+        "                Data!$3:$3,"
+        "                INDEX($1:$1,COLUMN()),"
+        "                Data!$4:$4,"
         "                VLOOKUP("
-        "                    $B$4;"
-        "                    TL!$1:$1048576;"
-        "                    2;"
+        "                    $B$4,"
+        "                    TL!$1:$1048576,"
+        "                    2,"
         "                    False"
         "                   )"
-        "               );"
+        "               ),"
         "         False"
         "       )"
         "    *IF("
         "         VLOOKUP("
-        "             $B$4;"
-        "             TL!$1:$1048576;"
-        "             3;"
+        "             $B$4,"
+        "             TL!$1:$1048576,"
+        "             3,"
         "             False"
-        '             )="Тотал";'
-        "         0;"
+        '             )="Тотал",'
+        "         0,"
         "         1"
         "        )"
         ")"
         "/IF("
-        '       $B$5="млрд.";'
-        "       10^9;"
+        '       $B$5="млрд.",'
+        "       10^9,"
         "       IF("
-        '           $B$5="млн.";'
-        "           10^6;"
+        '           $B$5="млн.",'
+        "           10^6,"
         "           IF("
-        '               $B$5="тыс.";'
-        "               10^3;"
+        '               $B$5="тыс.",'
+        "               10^3,"
         "               1"
         "              )"
         "         )"
         ")"
         "/IF("
         "       VLOOKUP("
-        "              $B$4;"
-        "              TL!$1:$1048576;"
-        "              3;"
+        "              $B$4,"
+        "              TL!$1:$1048576,"
+        "              3,"
         "              False"
-        '          )="Расход";'
+        '          )="Расход",'
         "          INDEX("
-        "                $1:$1048576;"
-        "                ROW()+1;"
+        "                $1:$1048576,"
+        "                ROW()+1,"
         "                4"
         "               )"
         "          -INDEX("
-        "                $1:$1048576;"
-        "                ROW();"
+        "                $1:$1048576,"
+        "                ROW(),"
         "                4"
-        "               );"
+        "               ),"
         "       1"
         ")"
     )

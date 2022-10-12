@@ -16,7 +16,8 @@ class CubeProperty(Keyword):
         self.Data = data
 
     def __add__(
-        self, other: Union[int, float, np.ndarray, CubeProperty]
+        self,
+        other: Union[int, float, np.ndarray, CubeProperty],
     ) -> CubeProperty:
         if isinstance(other, (int, float, np.ndarray)):
             return CubeProperty(self.Data + other)
@@ -26,7 +27,8 @@ class CubeProperty(Keyword):
             raise TypeError
 
     def __sub__(
-        self, other: Union[int, float, np.ndarray, CubeProperty]
+        self,
+        other: Union[int, float, np.ndarray, CubeProperty],
     ) -> CubeProperty:
         if isinstance(other, (int, float, np.ndarray)):
             return CubeProperty(self.Data - other)
@@ -36,7 +38,8 @@ class CubeProperty(Keyword):
             raise TypeError
 
     def __mul__(
-        self, other: Union[int, float, np.ndarray, CubeProperty]
+        self,
+        other: Union[int, float, np.ndarray, CubeProperty],
     ) -> CubeProperty:
         if isinstance(other, (int, float, np.ndarray)):
             return CubeProperty(self.Data * other)
@@ -46,7 +49,8 @@ class CubeProperty(Keyword):
             raise TypeError
 
     def __floordiv__(
-        self, other: Union[int, float, np.ndarray, CubeProperty]
+        self,
+        other: Union[int, float, np.ndarray, CubeProperty],
     ) -> CubeProperty:
         if isinstance(other, (int, float, np.ndarray)):
             return CubeProperty(self.Data // other)
@@ -56,7 +60,8 @@ class CubeProperty(Keyword):
             raise TypeError
 
     def __div__(
-        self, other: Union[int, float, np.ndarray, CubeProperty]
+        self,
+        other: Union[int, float, np.ndarray, CubeProperty],
     ) -> CubeProperty:
         if isinstance(other, (int, float, np.ndarray)):
             return CubeProperty(self.Data / other)
@@ -66,7 +71,8 @@ class CubeProperty(Keyword):
             raise TypeError
 
     def __truediv__(
-        self, other: Union[int, float, np.ndarray, CubeProperty]
+        self,
+        other: Union[int, float, np.ndarray, CubeProperty],
     ) -> CubeProperty:
         if isinstance(other, (int, float, np.ndarray)):
             return CubeProperty(self.Data / other)
@@ -76,7 +82,8 @@ class CubeProperty(Keyword):
             raise TypeError
 
     def __mod__(
-        self, other: Union[int, float, np.ndarray, CubeProperty]
+        self,
+        other: Union[int, float, np.ndarray, CubeProperty],
     ) -> CubeProperty:
         if isinstance(other, (int, float, np.ndarray)):
             return CubeProperty(self.Data % other)
@@ -90,26 +97,30 @@ class CubeProperty(Keyword):
         other: Union[int, float, np.ndarray, CubeProperty],
     ) -> Tuple[CubeProperty, CubeProperty]:
         if isinstance(other, (int, float, np.ndarray)):
-            return CubeProperty(self.Data // other), CubeProperty(self.Data % other)
+            integral = CubeProperty(self.Data // other)
+            remainder = CubeProperty(self.Data % other)
+            return integral, remainder
         elif isinstance(other, CubeProperty):
-            return CubeProperty(self.Data // other.Data), CubeProperty(
-                self.Data % other.Data
-            )
+            integral = CubeProperty(self.Data // other.Data)
+            remainder = CubeProperty(self.Data % other.Data)
+            return integral, remainder
         else:
             raise TypeError
 
     def __pow__(
-        self, other: Union[int, float, np.ndarray, CubeProperty]
+        self,
+        other: Union[int, float, np.ndarray, CubeProperty],
     ) -> CubeProperty:
         if isinstance(other, (int, float, np.ndarray)):
-            return CubeProperty(self.Data ** other)
+            return CubeProperty(self.Data**other)
         elif isinstance(other, CubeProperty):
-            return CubeProperty(self.Data ** other.Data)
+            return CubeProperty(self.Data**other.Data)
         else:
             raise TypeError
 
     def __radd__(
-        self, other: Union[int, float, np.ndarray, CubeProperty]
+        self,
+        other: Union[int, float, np.ndarray, CubeProperty],
     ) -> CubeProperty:
         if isinstance(other, (int, float, np.ndarray)):
             return CubeProperty(other + self.Data)
@@ -183,11 +194,13 @@ class CubeProperty(Keyword):
         other: Union[int, float, np.ndarray, CubeProperty],
     ) -> Tuple[CubeProperty, CubeProperty]:
         if isinstance(other, (int, float, np.ndarray)):
-            return CubeProperty(other // self.Data), CubeProperty(other % self.Data)
+            integral = CubeProperty(other // self.Data)
+            remainder = CubeProperty(other % self.Data)
+            return integral, remainder
         elif isinstance(other, CubeProperty):
-            return CubeProperty(other.Data // self.Data), CubeProperty(
-                other.Data % self.Data
-            )
+            integral = CubeProperty(other.Data // self.Data)
+            remainder = CubeProperty(other.Data % self.Data)
+            return integral, remainder
         else:
             raise TypeError
 
@@ -195,9 +208,9 @@ class CubeProperty(Keyword):
         self, other: Union[int, float, np.ndarray, CubeProperty]
     ) -> CubeProperty:
         if isinstance(other, (int, float, np.ndarray)):
-            return CubeProperty(other ** self.Data)
+            return CubeProperty(other**self.Data)
         elif isinstance(other, CubeProperty):
-            return CubeProperty(other.Data ** self.Data)
+            return CubeProperty(other.Data**self.Data)
         else:
             raise TypeError
 
