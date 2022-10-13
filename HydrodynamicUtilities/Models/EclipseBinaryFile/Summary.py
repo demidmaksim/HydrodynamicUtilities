@@ -344,16 +344,18 @@ class SUMMARY(EclipseBinaryData):
         return CumTimeSeriasParam(self.TimeVector, self.Values.T[0])
 
     def to_rate_time_series(
-            self,
-            method: str = "left",
-            calc_method: str = None,
+        self,
+        method: str = "left",
+        calc_method: str = None,
     ) -> RateTimeSeriasParam:
         if calc_method is None:
             if self.shape[1] != 1:
                 raise ValueError
             return RateTimeSeriasParam(self.TimeVector, self.Values.T[0], method="left")
         elif calc_method == "sum":
-            return RateTimeSeriasParam(self.TimeVector, self.Values.sum(axis=1), method="left")
+            return RateTimeSeriasParam(
+                self.TimeVector, self.Values.sum(axis=1), method="left"
+            )
         else:
             raise KeyError
 
@@ -588,9 +590,9 @@ class WellSUMMARY:
         return results
 
     def normalize_segment_param(
-            self,
-            s_param: str,
-            w_param: Union[Iterable[str], str],
+        self,
+        s_param: str,
+        w_param: Union[Iterable[str], str],
     ) -> None:
         seg_param = self.__get_seg(s_param)
         if isinstance(w_param, Iterable):

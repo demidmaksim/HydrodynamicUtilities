@@ -2,122 +2,463 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import numpy as np
+
 if TYPE_CHECKING:
-    from typing import Union, List, Tuple
+    from typing import Union, List, Tuple, Optional
 
 from typing import Iterable
 
 import xlsxwriter as xlsw
 from pathlib import Path
 from HydrodynamicUtilities.Models.EclipseBinaryFile import SUMMARY
-from HydrodynamicUtilities.Models.ParamVector import CumTimeSeriasParam
+from HydrodynamicUtilities.Models.ParamVector import CumTimeSeriasParam, TimeSeries
 from HydrodynamicUtilities.Models.Time import TimeVector, generate_time_vector
 
-from .ExcelFormula import formula
-
-import pandas as pd
 from copy import deepcopy
 
+import abc
 
-class ReportData:
 
-    sheet_data = (
-        ("OPT", "Нак. нефть"),
-        ("OVPT", "Нак. пл. нефть"),
-        ("OIT", "Нак. зак. нефти"),
-        ("OVIT", "Нак. пл. вода"),
+class KeywordReport:
+    Print = False
+    Name = ""
+    WellFlag = False
+    GroupFlag = False
 
-        ("WPT", "Нак. вода"),
-        ("WVPT", "Нак. пл. вода"),
-        ("WIT", "Нак. зак. воды"),
-        ("WVIT", "Нак. пл. вода"),
+    @abc.abstractmethod
+    def get(
+        self,
+        name: str,
+        summary: SUMMARY,
+        tv: TimeVector,
+        otype: str,
+    ) -> Optional[np.ndarray]:
+        pass
 
-        ("GPT", "Нак. газ"),
-        ("GVPT", "Нак. пл. газа"),
-        ("GIT", "Нак. зак. газа"),
-        ("GVIT", "Нак. пл. газа"),
+    def get_well(
+        self,
+        name: str,
+        summary: SUMMARY,
+        tv: TimeVector,
+    ) -> Optional[np.ndarray]:
+        return self.get(name, summary, tv, "W")
 
-        ("WTT", "Нак. время работы"),
+    def get_group(
+        self,
+        name: str,
+        summary: SUMMARY,
+        tv: TimeVector,
+    ) -> Optional[np.ndarray]:
+        return self.get(name, summary, tv, "G")
 
-        ("BHP", "Забойное давление"),
-        ("THP", "Устьевое давление"),
-    )
 
-    data = [
-        ["Накопл. нефть", "Нак. нефть", "Тотал"],
-        ["Добыча нефти", "Нак. нефть", "Период"],
-        ["Дебит нефти", "Нак. нефть", "Расход"],
-        ["Упл. Дебит дебит", "Нак. нефть", "Упл. Расход"],
-
-        ["Накопл. вода", "Нак. газ", "Тотал"],
-        ["Добыча воды", "Нак. вода", "Период"],
-        ["Дебит воды", "Нак. вода", "Расход"],
-        ["Упл. Дебит воды", "Нак. вода", "Упл. Расход"],
-
-        ["Накопл. газ", "Нак. газ", "Тотал"],
-        ["Добыча газа", "Нак. газ", "Период"],
-        ["Дебит газа", "Нак. газ", "Расход"],
-        ["Упл. Дебит газа", "Нак. газ", "Упл. Расход"],
-
-        ["Накопл. закачка воды", "Нак. зак. воды"],
-        ["Закачка воды", "Нак. зак. воды", "Период"],
-        ["Приемистость воды", "Нак. зак воды", "Расход"],
-        ["Упл. Приемистость воды", "Нак. зак воды", "Упл. Расход"],
-
-        ["Накопл. закачка газа", "Нак. зак. газа", "Тотал"],
-        ["Закачка газа", "Нак. зак. газа", "Период"],
-        ["Приемистость газа", "Нак. зак газа", "Расход"],
-        ["Упл. Приемистость газа", "Нак. зак газа", "Упл. Расход"],
-
-        ["Накопленное время работы", "Нак. время работы", "Тотал"],
-        ["Время работы", "Нак. время работы", "Период"],
-        ["Коэффициент эксплуатации", "Нак. время работы", "Расход"],
-
-        ["Забойное давление", "Забойное давление", "Тотал"],
-        ["Устьевое давление", "Устьевое давление", "Тотал"],
-
-        ["Газовый фактор", "Нак. газ", "Период", "Нак. нефть", "Период"],
-        ["Обводненность", "Нак. вода", "Период", "Нак. нефть", "Период"],
-
-        ["Компенсация", "Нак. вода", "Период", "Нак. нефть", "Период"],
-        ["Нак. Компенсация", "Нак. вода", "Тотал", "Нак. нефть", "Тотал"],
-
-        ["Накопл. пл. нефть", "Нак. пл. нефть", "Тотал"],
-        ["Добыча пл. нефти", "Нак. пл. нефть", "Период"],
-        ["Дебит пл. нефти", "Нак.  пл. нефть", "Расход"],
-        ["Упл. пл. Дебит дебит", "Нак.  пл. нефть", "Упл. Расход"],
-
-        ["Накопл. пл. нефть", "Нак. пл. вода", "Тотал"],
-        ["Добыча пл. воды", "Нак. пл. воды", "Период"],
-        ["Дебит пл. воды", "Нак.  пл. воды", "Расход"],
-        ["Упл. Дебит пл. воды", "Нак. пл. воды", "Упл. Расход"],
-
-        ["Накопл. пл. газ", "Нак. пл. газ", "Тотал"],
-        ["Добыча пл. газа", "Нак. пл. газ", "Период"],
-        ["Дебит пл. газа", "Нак. пл. газ", "Расход"],
-        ["Упл. пл. Дебит газа", "Нак. пл. газ", "Упл. Расход"],
-
-        ["Накопл. закачка воды", "Нак. зак. воды"],
-        ["Закачка воды", "Нак. зак. воды", "Период"],
-        ["Приемистость воды", "Нак. зак воды", "Расход"],
-        ["Упл. Приемистость воды", "Нак. зак воды", "Упл. Расход"],
-
-        ["Накопл. закачка газа", "Нак. зак. газа", "Тотал"],
-        ["Закачка газа", "Нак. зак. газа", "Период"],
-        ["Приемистость газа", "Нак. зак газа", "Расход"],
-        ["Упл. Приемистость газа", "Нак. зак газа", "Упл. Расход"],
-
-    ]
-
+class CumWrite(KeywordReport):
     def __init__(
         self,
-        well_names: List[str],
-        group_names: List[str],
-        calc_names: List[str],
+        mnemonic: str,
+        name: str,
+        to_report: bool = False,
+        well_flag: bool = True,
+        group_flag: bool = True,
     ) -> None:
-        self.WellNames = well_names
-        self.GroupNames = group_names
-        self.CalcNames = calc_names
+        self.Mnemonc = mnemonic
+        self.Name = name
+        self.Print = to_report
+        self.WellFlag = well_flag
+        self.GroupFlag = group_flag
+
+    def get(
+        self,
+        name: str,
+        summary: SUMMARY,
+        tv: TimeVector,
+        otype: str,
+    ) -> Optional[np.ndarray]:
+        summary = summary.get(f"{otype}{self.Mnemonc}", name)
+        if summary.shape[1] != 1:
+            return None
+        ts = CumTimeSeriasParam(summary.TimeVector, summary.Values)
+        value = ts.retime(tv)
+        return value.values
+
+
+class WTT(KeywordReport):
+    def __init__(
+        self,
+        mnemonic: str,
+        name: str,
+        to_report: bool = False,
+        well_flag: bool = True,
+        group_flag: bool = True,
+    ) -> None:
+        self.Mnemonc = mnemonic
+        self.Name = name
+        self.Print = to_report
+        self.WellFlag = well_flag
+        self.GroupFlag = group_flag
+
+    def get(
+        self,
+        name: str,
+        summary: SUMMARY,
+        tv: TimeVector,
+        otype: str,
+    ) -> Optional[np.ndarray]:
+        try_summary = summary.get(f"{otype}{self.Mnemonc}", name)
+
+        if try_summary.shape[1] != 1:
+            try:
+                periods = tv.get_periods()
+                op = summary.get(f"WOPT", name).to_cum_time_series()
+                wp = summary.get(f"WOPT", name).to_cum_time_series()
+                gp = summary.get(f"WOPT", name).to_cum_time_series()
+
+                dop = op.get_delta_serias()
+                dwp = wp.get_delta_serias()
+                dgp = gp.get_delta_serias()
+
+                oi = summary.get(f"WOIT", name).to_cum_time_series()
+                wi = summary.get(f"WOIT", name).to_cum_time_series()
+                gi = summary.get(f"WOIT", name).to_cum_time_series()
+
+                doi = oi.get_delta_serias()
+                dwi = wi.get_delta_serias()
+                dgi = gi.get_delta_serias()
+
+                rate_from_cum = dop + dwp + dgp + doi + dwi + dgi
+
+                op = summary.get(f"WOPR", name).to_rate_time_series()
+                wp = summary.get(f"WOPR", name).to_rate_time_series()
+                gp = summary.get(f"WOPR", name).to_rate_time_series()
+                oi = summary.get(f"WOIR", name).to_rate_time_series()
+                wi = summary.get(f"WOIR", name).to_rate_time_series()
+                gi = summary.get(f"WOIR", name).to_rate_time_series()
+
+                rate = op + wp + gp + oi + wi + gi
+
+                rate_from_cum[rate_from_cum.values == 0] = 0
+                rate[rate.values == 0] = 1
+
+                wefac = rate_from_cum / rate
+                wefac = wefac.retime(tv)
+                return periods * wefac.values
+            except ValueError:
+                return None
+
+        if try_summary.shape[1] != 1:
+            return None
+
+        ts = CumTimeSeriasParam(try_summary.TimeVector, try_summary.Values)
+        value = ts.retime(tv)
+        return value.values
+
+
+class FlowWrite(KeywordReport):
+    def __init__(
+        self,
+        mnemonic: str,
+        name: str,
+        to_report: bool = False,
+        well_flag: bool = True,
+        group_flag: bool = True,
+    ) -> None:
+        self.Mnemonc = mnemonic
+        self.Name = name
+        self.Print = to_report
+        self.WellFlag = well_flag
+        self.GroupFlag = group_flag
+
+    def get(
+        self,
+        name: str,
+        summary: SUMMARY,
+        tv: TimeVector,
+        otype: str,
+    ) -> Optional[np.ndarray]:
+        summary = summary.get(f"{otype}{self.Mnemonc}", name)
+        if summary.shape[1] != 1:
+            return None
+        ts = TimeSeries(summary.TimeVector, summary.Values)
+        tsm = ts.to_interpolation_model()
+        value = tsm.get_value(tv)
+        return value.values
+
+
+class FPCWrite(KeywordReport):
+    # FlowPeriodCalcWrite
+    def __init__(
+        self,
+        mnemonic: str,
+        name: str,
+        to_report: bool = False,
+        well_flag: bool = True,
+        group_flag: bool = True,
+    ) -> None:
+        self.Mnemonc = mnemonic
+        self.Name = name
+        self.Print = to_report
+        self.WellFlag = well_flag
+        self.GroupFlag = group_flag
+
+    def get(
+        self,
+        name: str,
+        summary: SUMMARY,
+        tv: TimeVector,
+        otype: str,
+    ) -> Optional[np.ndarray]:
+        summary = summary.get(f"{otype}{self.Mnemonc}", name)
+        if summary.shape[1] != 1:
+            return None
+        ts = CumTimeSeriasParam(summary.TimeVector, summary.Values)
+        value = ts.retime(tv)
+        results = value.get_delta_serias()
+        return results.values
+
+
+class WaterCut(KeywordReport):
+    def __init__(
+        self,
+        name: str,
+        to_report: bool = False,
+        well_flag: bool = True,
+        group_flag: bool = True,
+    ) -> None:
+        self.Name = name
+        self.Print = to_report
+        self.WellFlag = well_flag
+        self.GroupFlag = group_flag
+
+    def get(
+        self,
+        name: str,
+        summary: SUMMARY,
+        tv: TimeVector,
+        otype: str,
+    ) -> Optional[np.ndarray]:
+        ws = summary.get(f"{otype}WPT", name)
+        ls = summary.get(f"{otype}LPT", name)
+
+        if ls.shape[0] != 0:
+            os = summary.get(f"{otype}OPT", name)
+            ls.Values = ws.Values + os.Values
+
+        if ws.shape[1] != 1 or ls.shape[1] != 1:
+            return None
+
+        wtts = CumTimeSeriasParam(ws.TimeVector, ws.Values)
+        ltts = CumTimeSeriasParam(ls.TimeVector, ls.Values)
+        wtts = wtts.retime(tv)
+        ltts = ltts.retime(tv)
+        wrts = wtts.get_delta_serias()
+        lrts = ltts.get_delta_serias()
+        wrts[wrts.values == 0] = 0
+        lrts[lrts.values == 0] = 1
+        value = wrts / lrts
+        return value.values
+
+
+class GOR(KeywordReport):
+    def __init__(
+        self,
+        name: str,
+        to_report: bool = False,
+        well_flag: bool = True,
+        group_flag: bool = True,
+    ) -> None:
+        self.Name = name
+        self.Print = to_report
+        self.WellFlag = well_flag
+        self.GroupFlag = group_flag
+
+    def get(
+        self,
+        name: str,
+        summary: SUMMARY,
+        tv: TimeVector,
+        otype: str,
+    ) -> Optional[np.ndarray]:
+        ws = summary.get(f"{otype}GPT", name)
+        ls = summary.get(f"{otype}OPT", name)
+
+        if ws.shape[1] != 1 or ls.shape[1] != 1:
+            return None
+
+        wtts = CumTimeSeriasParam(ws.TimeVector, ws.Values)
+        ltts = CumTimeSeriasParam(ls.TimeVector, ls.Values)
+        wtts = wtts.retime(tv)
+        ltts = ltts.retime(tv)
+        wrts = wtts.get_delta_serias()
+        lrts = ltts.get_delta_serias()
+        wrts[wrts.values == 0] = 0
+        lrts[lrts.values == 0] = 1
+        value = wrts / lrts
+        return value.values
+
+
+class Compensation(KeywordReport):
+    def __init__(
+        self,
+        name: str,
+        to_report: bool = False,
+        well_flag: bool = True,
+        group_flag: bool = True,
+    ) -> None:
+        self.Name = name
+        self.Print = to_report
+        self.WellFlag = well_flag
+        self.GroupFlag = group_flag
+
+    def get(
+        self,
+        name: str,
+        summary: SUMMARY,
+        tv: TimeVector,
+        otype: str,
+    ) -> Optional[np.ndarray]:
+        ws = summary.get(f"{otype}VPT", name)
+        ls = summary.get(f"{otype}VIT", name)
+
+        if ws.shape[1] != 1 or ls.shape[1] != 1:
+            return None
+
+        wtts = CumTimeSeriasParam(ws.TimeVector, ws.Values)
+        ltts = CumTimeSeriasParam(ls.TimeVector, ls.Values)
+        wtts = wtts.retime(tv)
+        ltts = ltts.retime(tv)
+        wrts = wtts.get_delta_serias()
+        lrts = ltts.get_delta_serias()
+        wrts[wrts.values == 0] = 0
+        lrts[lrts.values == 0] = 1
+        value = wrts / lrts
+        return value.values
+
+
+class CumCompensation(KeywordReport):
+    def __init__(
+        self,
+        name: str,
+        to_report: bool = False,
+        well_flag: bool = True,
+        group_flag: bool = True,
+    ) -> None:
+        self.Name = name
+        self.Print = to_report
+        self.WellFlag = well_flag
+        self.GroupFlag = group_flag
+
+    def get(
+        self,
+        name: str,
+        summary: SUMMARY,
+        tv: TimeVector,
+        otype: str,
+    ) -> Optional[np.ndarray]:
+        ws = summary.get(f"{otype}VIT", name)
+        ls = summary.get(f"{otype}VPT", name)
+
+        if ws.shape[1] != 1 or ls.shape[1] != 1:
+            return None
+
+        wtts = CumTimeSeriasParam(ws.TimeVector, ws.Values)
+        ltts = CumTimeSeriasParam(ls.TimeVector, ls.Values)
+        wtts = wtts.retime(tv)
+        ltts = ltts.retime(tv)
+        wtts[wtts.values == 0] = 0
+        ltts[ltts.values == 0] = 1
+        value = wtts / ltts
+        return value.values
+
+
+class Request:
+    def __init__(self, request: Iterable[Tuple[str, bool]] = None) -> None:
+
+        self.OPT = CumWrite("OPT", "Нак. нефть", True, True, True)
+        self.WPT = CumWrite("WPT", "Нак. воды", True, True, True)
+        self.GPT = CumWrite("GPT", "Нак. газ", True, True, True)
+        # self.LPT = CumWrite("GPT", "Нак. газ", True, True, True)
+
+        self.OIT = CumWrite("OPT", "Нак. зак. нефть", True, True, True)
+        self.WIT = CumWrite("WPT", "Нак. зак. воды", True, True, True)
+        self.GIT = CumWrite("GPT", "Нак. зак. газ", True, True, True)
+
+        self.WTT = WTT("WTT", "Нак. время. работы", True, True, False)
+
+        self.OVPT = CumWrite("OVPT", "Нак. нефть (пл. усл.)", False, True, True)
+        self.WVPT = CumWrite("WVPT", "Нак. воды (пл. усл.)", False, True, True)
+        self.GVPT = CumWrite("GVPT", "Нак. газ (пл. усл.)", False, True, True)
+
+        self.OVIT = CumWrite("OVIT", "Нак. зак. нефти (п.у.)", False, True, True)
+        self.WVIT = CumWrite("WVIT", "Нак. зак. воды (п.у.)", False, True, True)
+        self.GVIT = CumWrite("GVIT", "Нак. зак. газа (п.у.)", False, True, True)
+
+        self.BHP = CumWrite("BHP", "Забойное давление", False, True, False)
+        self.THP = CumWrite("THP", "Забойное давление", False, True, False)
+
+        self.OPR = FPCWrite("OPT", "Добыча нефти", True, True, True)
+        self.WPR = FPCWrite("WPT", "Добыча воды", True, True, True)
+        self.GPR = FPCWrite("GPT", "Добыча газа", True, True, True)
+
+        self.OIR = FPCWrite("OIT", "Закачка нефти", False, True, True)
+        self.WIR = FPCWrite("WIT", "Закачка воды", True, True, True)
+        self.GIR = FPCWrite("GIT", "Закачка газа", True, True, True)
+
+        self.OVPR = FPCWrite("OVPT", "Добыча нефти (п.у.)", False, True, True)
+        self.WVPR = FPCWrite("WVPT", "Добыча воды (п.у.)", False, True, True)
+        self.GVPR = FPCWrite("GVPT", "Добыча газа (п.у.)", False, True, True)
+
+        self.OVIR = FPCWrite("OVIT", "Закачка нефти (п.у.)", False, True, True)
+        self.WVIR = FPCWrite("WVIT", "Закачка воды (п.у.)", False, True, True)
+        self.GVIR = FPCWrite("GVIT", "Закачка газа (п.у.)", False, True, True)
+
+        self.WCT = WaterCut("Обводненность", True, True, True)
+        self.GOR = GOR("Газовый фактор", True, True, True)
+        self.Comp = Compensation("Компенсация", True, True, True)
+        self.CumComp = CumCompensation("Накопленная Компенсация", True, True, True)
+
+        self.AllField = (
+            self.OPT,
+            self.WPT,
+            self.GPT,
+            # self.LPT = CumWrite("GPT", "Нак. газ", True, True, True)
+            self.OIT,
+            self.WIT,
+            self.GIT,
+            self.WTT,
+            self.OVPT,
+            self.WVPT,
+            self.GVPT,
+            self.OVIT,
+            self.WVIT,
+            self.GVIT,
+            self.BHP,
+            self.THP,
+            self.OPR,
+            self.WPR,
+            self.GPR,
+            self.OIR,
+            self.WIR,
+            self.GIR,
+            self.OVPR,
+            self.WVPR,
+            self.GVPR,
+            self.OVIR,
+            self.WVIR,
+            self.GVIR,
+            self.WCT,
+            self.GOR,
+            self.Comp,
+            self.CumComp,
+        )
+        if request is not None:
+            self.set_request(request)
+
+    def set_request(self, request: Iterable[Tuple[str, bool]]) -> None:
+        for name, what in request:
+            atr = getattr(self, name)
+            if isinstance(atr, KeywordReport):
+                atr.Print = name
 
     @staticmethod
     def get_all_time(summary: List[SUMMARY]) -> TimeVector:
@@ -129,162 +470,92 @@ class ReportData:
 
     @staticmethod
     def write_time(
-            sheet: xlsw.workbook.Worksheet,
-            book: xlsw.workbook.Workbook,
-            tv: TimeVector,
-            row: int,
-            col: int,
+        sheet: xlsw.workbook.Worksheet,
+        book: xlsw.workbook.Workbook,
+        tv: TimeVector,
+        row: int,
+        col: int,
     ) -> None:
         time_format = book.add_format({"num_format": "yyyy-mm-dd hh:mm:ss"})
         for tid, tp in enumerate(tv.to_datetime_list()):
             sheet.write_datetime(row + tid, col, tp, time_format)
 
-    def get_all_names(self) -> List[str]:
-        return list(self.WellNames) + list(self.GroupNames)
+    def get_write_field(self) -> Iterable[KeywordReport]:
+        for value in self.AllField:
+            yield value
 
 
-def get_report_data(summary: Iterable[SUMMARY]) -> ReportData:
-    well_names = []
-    group_names = []
-    calc_names = []
-    for su in summary:
-        calc_names.append(su.CalcName)
-        well_names.extend(su.get_well_names())
-        group_names.extend(su.get_group_name())
-    return ReportData(
-        pd.unique(well_names),
-        pd.unique(group_names),
-        pd.unique(calc_names),
-    )
+class CalcExcelReporter:
+    def __int__(self) -> None:
+        pass
 
-
-def __write(
-        model: SUMMARY,
-        model_kw_name: str,
-        kw_name: str,
+    def __write_time(
+        self,
         sheet: xlsw.workbook.Worksheet,
+        book: xlsw.workbook.Workbook,
         tv: TimeVector,
-        for_iter: List[str],
-        i: int,
-) -> int:
-    for wn in for_iter:
-        sheet.write(0, i, i)
-        sheet.write(1, i, model.CalcName)
-        sheet.write(2, i, wn)
-        sheet.write(3, i, kw_name)
-        data = model.get(model_kw_name, wn)
-        if data.shape[1] != 0 and model_kw_name not in ("GBHP", "GTHP"):
-            sheet.write(4, i, data.Header.Unit[0])
-            ts = CumTimeSeriasParam(data.TimeVector, data.Values)
-            value = ts.retime(tv)
-            sheet.write_column(5, i, value.values)
-            i += 1
-    return i
+        row: int,
+        col: int,
+    ) -> None:
+        time_format = book.add_format({"num_format": "yyyy-mm-dd hh:mm:ss"})
+        for tid, tp in enumerate(tv.to_datetime_list()):
+            sheet.write_datetime(row + tid, col, tp, time_format)
 
+    def __get_tv(self, summary: List[SUMMARY]) -> TimeVector:
+        tv = deepcopy(summary[0].TimeVector)
+        for model in summary[1:]:
+            tv.extend(model.TimeVector)
 
-def write_formula(
-        model: SUMMARY,
-        model_kw_name: str,
-        kw_name: str,
-        sheet: xlsw.workbook.Worksheet,
-        tv: TimeVector,
-        for_iter: List[str],
-        i: int,
-) -> int:
-    for wn in for_iter:
-        sheet.write(0, i, i)
-        sheet.write(1, i, model.CalcName)
-        sheet.write(2, i, wn)
-        sheet.write(3, i, kw_name)
-        data = model.get(model_kw_name, wn)
-        if data.shape[1] != 0 and model_kw_name not in ("GBHP", "GTHP"):
-            sheet.write(4, i, data.Header.Unit[0])
-            ts = CumTimeSeriasParam(data.TimeVector, data.Values)
-            value = ts.retime(tv)
-            sheet.write_column(5, i, value.values)
-            i += 1
-    return i
+        add_tv = generate_time_vector(tv.min, tv.max, "M", value_step=1)
+        return add_tv
 
-
-def fill_data_sheet(
-        setting: ReportData,
+    def writhe(
+        self,
         book: xlsw.Workbook,
-        summary: List[SUMMARY],
+        summary: Iterable[SUMMARY],
         tv: TimeVector,
-) -> None:
-    sheet = book.add_worksheet("Data")
-    setting.write_time(sheet, book, tv, 5, 0)
-    i = 1
-    wnames = setting.WellNames
-    gnames = setting.WellNames
-    for model in summary:
-        for kw, kw_name in setting.sheet_data:
-            i = __write(model, f"W{kw}", kw_name, sheet, tv, wnames, i)
-            i = __write(model, f"G{kw}", kw_name, sheet, tv, gnames, i)
+        request: Request,
+    ) -> None:
+        sheet = book.add_worksheet("Data")
+        self.__write_time(sheet, book, tv, 4, 0)
+        i = 1
+        for model in summary:
+            for field in request.get_write_field():
 
+                if field.WellFlag and field.Print:
+                    for wname in model.get_well_names():
+                        sheet.write(0, i, i)
+                        sheet.write(1, i, model.CalcName)
+                        sheet.write(2, i, wname)
+                        sheet.write(3, i, field.Name)
+                        value = field.get_well(wname, model, tv)
+                        if value is not None:
+                            sheet.write_column(4, i, value)
+                        i += 1
 
-def fill_technical_list(
-        setting: ReportData,
-        book: xlsw.Workbook,
-) -> None:
-    sheet = book.add_worksheet("TechnicalList")
-    for rid, row in enumerate(setting.data):
-        sheet.write_row(rid, 0, row)
+                if field.GroupFlag and field.Print:
+                    for gname in model.get_group_name():
+                        sheet.write(0, i, i)
+                        sheet.write(1, i, model.CalcName)
+                        sheet.write(2, i, gname)
+                        sheet.write(3, i, field.Name)
+                        value = field.get_group(gname, model, tv)
+                        if value is not None:
+                            sheet.write_column(4, i, value)
+                        i += 1
 
-    sheet.write_column(0, 10, [" ", "тыс.", "млн.", "млрд."])
-    sheet.write_column(0, 11, [1, 10**3, 10**6, 10**9])
-
-
-def create_object_sheet(
-        setting: ReportData,
-        book: xlsw.Workbook,
-        summary: List[SUMMARY],
-        tv: TimeVector,
-) -> None:
-    sheet = book.add_worksheet("Objects")
-    sheet.write_row(0, 4, setting.get_all_names())
-    setting.write_time(sheet, book, tv, 2, 3)
-
-    name = []
-    for sum in summary:
-        name.append(sum.CalcName)
-
-    sheet.write(2, 0, "Model")
-    sheet.write(3, 0, "Parameter")
-    sheet.write(4, 0, "Multiplier")
-    # sheet.write(3, 0, "Multiplier")
-
-    mul = [" ", "тыс.", "млн.", "млрд."]
-
-    sheet.write(2, 1, name[0])
-    sheet.write(3, 1, "")
-    sheet.write(4, 0, "")
-
-    sheet.data_validation("B3", {"validate": "list", "source": name})
-    sheet.data_validation("B4", {"validate": "list", "source": f"TechnicalList!A1:A{len(setting.data)}"})
-    sheet.data_validation("B5", {"validate": "list", "source": "TechnicalList!K1:K4"})
-
-    for col in range(len(setting.get_all_names())):
-        for row in range(len(tv.to_datetime64())):
-            sheet.write_formula(row + 2, col + 4, formula)
-
-
-def create(
+    def create(
+        self,
         path: Union[Path, str],
-        summary: Iterable[SUMMARY]
-) -> None:
+        summary: Union[SUMMARY, Iterable[SUMMARY]],
+        request: Request,
+    ) -> None:
+        if isinstance(summary, SUMMARY):
+            summary = [summary]
+        else:
+            summary = list(summary)
 
-    if isinstance(summary, SUMMARY):
-        summary = [summary]
-    else:
-        summary = list(summary)
-
-    setting = get_report_data(summary)
-    tv = setting.get_all_time(summary)
-    book = xlsw.Workbook(path)
-    fill_data_sheet(setting, book, summary, tv)
-    fill_technical_list(setting, book)
-    create_object_sheet(setting, book, summary, tv)
-    book.close()
-
-
+        book = xlsw.Workbook(path)
+        tv = self.__get_tv(summary)
+        self.writhe(book, summary, tv, request)
+        book.close()

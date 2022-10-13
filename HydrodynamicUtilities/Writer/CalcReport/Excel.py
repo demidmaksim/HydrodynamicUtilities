@@ -67,8 +67,6 @@ def create_data_sheet(
     summary: Union[SUMMARY, Iterable[SUMMARY]],
 ) -> None:
 
-
-
     target = {
         "OPT": "Нак. нефть",
         "WPT": "Нак. вода",
