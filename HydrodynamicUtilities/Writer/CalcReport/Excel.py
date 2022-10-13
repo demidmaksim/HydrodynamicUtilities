@@ -67,8 +67,7 @@ def create_data_sheet(
     summary: Union[SUMMARY, Iterable[SUMMARY]],
 ) -> None:
 
-    if isinstance(summary, SUMMARY):
-        summary = [summary]
+
 
     target = {
         "OPT": "Нак. нефть",
@@ -114,7 +113,7 @@ def create_data_sheet(
                 sheet.write(4, i, "---")
                 data = sum.get(wkw, wn)
                 if data.shape[1] != 0:
-                    ts = CumTimeSeriasParam(data.TimeVector, data.values)
+                    ts = CumTimeSeriasParam(data.TimeVector, data.Values)
                     value = ts.retime(tv)
                     sheet.write_column(5, i, value.values)
                 i += 1
