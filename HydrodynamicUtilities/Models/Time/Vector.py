@@ -488,9 +488,26 @@ def generate_time_vector(
     step: str,
     value_step: int = None,
     easter_egg_flag: bool = False,
+    flat_borders: bool = False,
 ) -> TimeVector:
     start = start.Date
     end = end.Date
+
+    if flat_borders:
+        all_steps = ("Y", "M", "D", "h", "m", "s", "ms")
+        if step != "Y":
+            ts = all_steps[all_steps.index(step)]
+            ts1 = all_steps[all_steps.index(step) - 1]
+        else:
+            ts = step
+            ts1 = step
+
+        start = start.astype(dtype=f"datetime64[{ts1}]")
+        start = start.astype(dtype=f"datetime64[{ts}]")
+
+        end = end.astype(dtype=f"datetime64[{ts1}]") + 1
+        end = end.astype(dtype=f"datetime64[{ts}]")
+
     if value_step is not None:
         dtype = f"datetime64[{step}]"
         vector = np.arange(start, end, dtype=dtype, step=value_step)
