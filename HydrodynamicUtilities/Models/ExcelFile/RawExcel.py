@@ -24,7 +24,7 @@ from ..HistoryData import (
 )
 from ..Time import TimeVector, TimeDelta, TimePoint
 from ..Strategy import ScheduleDataframe, ScheduleSheet, Strategy
-from ..Source.EclipseScheduleNames import BaseKeyWord, ScheduleKeyword
+from ..Source.EclipseScheduleNames import BaseKeyWord, ScheduleKeyword, WELLTRACK
 from ..ParamVector import TimeSeries
 
 
@@ -93,7 +93,15 @@ def remove_unnecessary(
     # new["Time"] = new["Time"].astype(dtype="datetime64[s]")
 
     for column in keyword_pattern.Order:
-        new[column] = df[column].values
+        if column == "MD" and column not in df.columns:
+            x = df[WELLTRACK.X].values
+            y = df[WELLTRACK.Y].values
+            z = df[WELLTRACK.Z].values
+            md = np.zeros(x.shape)
+            md[1:] = (x[1:] - x[:-1]) ** 2 + (y[1:] - y[:-1]) ** 2 + (z[1:] - z[:-1]) ** 2
+            new[column] = md ** 0.5
+        else:
+            new[column] = df[column].values
 
     new = new.dropna(how="all")
 

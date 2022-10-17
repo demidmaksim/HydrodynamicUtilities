@@ -3,20 +3,20 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from typing import Optional, List
-    from HydrodynamicModelAnalysis.Models.ExcelFile import RawExcelDataDict
+    from HydrodynamicUtilities.Models.ExcelFile import RawExcelDataDict
 
 
-from App.GUI.UiMainWindow import Ui_MainWindow
+from HydrodynamicUtilities.App.GUI.UiMainWindow import Ui_MainWindow
 
 import os
 
 from pathlib import Path
 
-from Writer import create_schedule
-from HydrodynamicModelAnalysis.Models import TimeVector, generate_time_vector, TimePoint
-from Reader.ExcelReader import BaseReader
-from HydrodynamicModelAnalysis.Models.Strategy.Frame import ScheduleDataframe
-from HydrodynamicModelAnalysis.Models.Strategy.Validator import Validator
+from HydrodynamicUtilities.Writer import create_schedule
+from HydrodynamicUtilities.Models.Time import TimeVector, generate_time_vector, TimePoint
+from HydrodynamicUtilities.Reader.ExcelReader import BaseReader
+from HydrodynamicUtilities.Models.Strategy.Frame import ScheduleDataframe
+from HydrodynamicUtilities.Models.Strategy.Validator import Validator
 
 
 class APPScheduleValidator(Validator):
@@ -119,7 +119,7 @@ class ScheduleCreatorApp:
                 return None
 
             redd = BaseReader.read_excel_files(path_list)
-            if ui.checkBox_in_one_file_sch.isChecked():
+            if ui.checkBox_in_one_file_to_sch.isChecked():
                 self.__create_jointly(ui, time_vector, redd, target_dir)
             else:
                 self.__create_each_separately(ui, time_vector, redd, target_dir)

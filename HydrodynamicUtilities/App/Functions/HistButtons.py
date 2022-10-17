@@ -4,18 +4,18 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from typing import List
 
-from App.GUI.UiMainWindow import Ui_MainWindow
+from HydrodynamicUtilities.App.GUI.UiMainWindow import Ui_MainWindow
 
 import os
 
 from pathlib import Path
 
-from Writer import create_schedule
-from HydrodynamicModelAnalysis.Models import TimePoint
-from Reader.ExcelReader import BaseReader
-from HydrodynamicModelAnalysis.Models.Strategy.Frame import ScheduleDataframe
-from Writer.Schedule.ToExcel import write_xlsx
-from HydrodynamicModelAnalysis.Models import FieldHistory
+from HydrodynamicUtilities.Writer import create_schedule
+from HydrodynamicUtilities.Models.Time import TimePoint
+from HydrodynamicUtilities.Reader.ExcelReader import BaseReader
+from HydrodynamicUtilities.Models.Strategy.Frame import ScheduleDataframe
+from HydrodynamicUtilities.Writer.Schedule.ToExcel import write_xlsx
+from HydrodynamicUtilities.Models.HistoryData import FieldHistory
 
 
 class HistCreatorApp:

@@ -2,13 +2,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from PySide6 import QtWidgets
-from App.GUI.UiMainWindow import Ui_MainWindow
+from HydrodynamicUtilities.App.GUI.UiMainWindow import Ui_MainWindow
 
 from pathlib import Path
 
-from Writer import get_pattern
+from HydrodynamicUtilities.Writer import get_pattern
 from .SCHButtons import ScheduleCreatorApp
-from .ExcelButtons import AsciiReaderApp
+# from .ExcelButtons import AsciiReaderApp
 from .HistButtons import HistCreatorApp
 
 
@@ -171,8 +171,9 @@ class TestClass(QtWidgets.QMainWindow):
             return None
 
     def create_excel_from_sch(self) -> None:
-        creator = AsciiReaderApp()
-        creator.create_excel(self.ui)
+        # creator = AsciiReaderApp()
+        # creator.create_excel(self.ui)
+        pass
 
     def check_hist_files(self) -> None:
         pass

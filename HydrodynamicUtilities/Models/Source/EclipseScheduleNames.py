@@ -1058,7 +1058,7 @@ class WGRUPCON(OneRowKeyword):
 
 
 class WTEST(OneRowKeyword):
-    WellName = "Имя скважины"
+    WellName = "Имя скважины/списка"
     CheckInterval = "Интервал проверки"
     ClosingCondition = "Условие закрытия"
     InspectionsNumber = "Количество проверок скважины"

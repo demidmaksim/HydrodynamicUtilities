@@ -4,16 +4,16 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from typing import List
 
-from App.GUI.UiMainWindow import Ui_MainWindow
+from HydrodynamicUtilities.App.GUI.UiMainWindow import Ui_MainWindow
 
 import os
 
 from pathlib import Path
 
 
-from HydrodynamicModelAnalysis.Models.Strategy.Frame import ScheduleDataframe
-from Reader.ReaderASCII import read_schedule_section
-from Writer.Schedule.ToExcel import write_xlsx
+from HydrodynamicUtilities.Models.Strategy.Frame import ScheduleDataframe
+from HydrodynamicUtilities.Reader.ReaderASCII import read_schedule_section
+from HydrodynamicUtilities.Writer.Schedule.ToExcel import write_xlsx
 
 
 class AsciiReaderApp:

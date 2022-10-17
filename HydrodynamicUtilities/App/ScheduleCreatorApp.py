@@ -1,6 +1,6 @@
 from PySide6 import QtWidgets
 
-from App.Functions.Сompound import TestClass
+from HydrodynamicUtilities.App.Functions.Сompound import TestClass
 from multiprocessing import freeze_support
 
 
