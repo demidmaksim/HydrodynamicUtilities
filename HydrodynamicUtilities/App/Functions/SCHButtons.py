@@ -13,7 +13,11 @@ import os
 from pathlib import Path
 
 from HydrodynamicUtilities.Writer import create_schedule
-from HydrodynamicUtilities.Models.Time import TimeVector, generate_time_vector, TimePoint
+from HydrodynamicUtilities.Models.Time import (
+    TimeVector,
+    generate_time_vector,
+    TimePoint,
+)
 from HydrodynamicUtilities.Reader.ExcelReader import BaseReader
 from HydrodynamicUtilities.Models.Strategy.Frame import ScheduleDataframe
 from HydrodynamicUtilities.Models.Strategy.Validator import Validator

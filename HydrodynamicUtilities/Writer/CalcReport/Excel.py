@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import Union, List, Tuple, Optional
+    from typing import Union, List, Tuple, Optional, Dict
 
 from typing import Iterable
 
@@ -250,7 +250,10 @@ class FPCWrite(KeywordReport):
         if summary.shape[1] != 1:
             return None
         ts = CumTimeSeriasParam(summary.TimeVector, summary.Values)
-        tsm = ts.to_interpolation_model()
+        tsm = ts.to_interpolation_model(
+            bounds_error=False,
+            fill_value=(ts.values.min(), ts.values.max()),
+        )
         # value = ts.retime(tv)
         results = tsm.get_delta(tv)
         return results.values
@@ -622,52 +625,19 @@ class Request:
 
 
 class CalcExcelReporter:
-    formula_by_object = (
-        "=VLOOKUP("
-        "   INDEX($1:$1048576,ROW(),4),"
-        "   Data!$1:$1048576,"
-        "   1+SUMIFS("
-        "       Data!$1:$1,"
-        "       Data!$2:$2,"
-        "       $B$1,"
-        "       Data!$3:$3,"
-        "       INDEX($1:$1,COLUMN()),"
-        "       Data!$4:$4,"
-        "       $B$2"
-        "       ),"
-        "       False"
-        ")"
-    ).replace(" ", "")
 
-    formula_by_param = (
+    formula = (
         "=VLOOKUP("
         "   INDEX($1:$1048576,ROW(),4),"
         "   Data!$1:$1048576,"
         "   1+SUMIFS("
         "       Data!$1:$1,"
         "       Data!$2:$2,"
-        "       $B$1,"
+        "       {ModelName},"
         "       Data!$3:$3,"
-        "       $B$2,"
+        "       {ObjectName},"
         "       Data!$4:$4,"
-        "       INDEX($1:$1,COLUMN())"
-        "       ),"
-        "       False"
-        ")"
-    ).replace(" ", "")
-
-    formula_by_model = (
-        "=VLOOKUP("
-        "   INDEX($1:$1048576,ROW(),4),"
-        "   Data!$1:$1048576,"
-        "   1+SUMIFS("
-        "       Data!$1:$1,"
-        "       Data!$2:$2,"
-        "       INDEX($1:$1,COLUMN()),"
-        "       Data!$3:$3,"
-        "       $B$2,"
-        "       Data!$4:$4,"
-        "       $B$1"
+        "       {ParamName}"
         "       ),"
         "       False"
         ")"
@@ -790,6 +760,27 @@ class CalcExcelReporter:
         sheet.write_column(0, 3, well_param_name)
         sheet.write_column(0, 4, group_param_name)
 
+    def universal_notation(
+        self,
+        book: xlsw.Workbook,
+        tv: TimeVector,
+        data: Dict[str, str],
+    ) -> None:
+        sheet = book.add_worksheet(data["SheetName"])
+        sheet.write(0, 0, data["ChooseName1"])
+        sheet.write(1, 0, data["ChooseName2"])
+        sheet.write(0, 1, data["ChooseBaseValue1"])
+        sheet.write(1, 1, data["ChooseBaseValue2"])
+        sheet.data_validation("B1", {"validate": "list", "source": data["CL1"]})
+        sheet.data_validation("B2", {"validate": "list", "source": data["CL2"]})
+        sheet.write_row(0, 4, data["ColumnName"])
+        self.__write_time(sheet, book, tv, 2, 3)
+        nf = book.add_format({"num_format": "0.00"})
+        formula = self.formula.format(**data)
+        for col in range(len(data["ColumnName"])):
+            for row in range(len(tv.to_datetime64())):
+                sheet.write_formula(row + 2, col + 4, formula, nf)
+
     def write_well(
         self,
         book: xlsw.Workbook,
@@ -798,33 +789,66 @@ class CalcExcelReporter:
         calc_name: List[str],
         well_param_name: List[str],
     ) -> None:
-        sheet = book.add_worksheet("Wells")
-        sheet.write(0, 0, "Model")
-        sheet.write(1, 0, "Param")
-        sheet.write(0, 1, calc_name[0])
-        sheet.write(1, 1, well_param_name[0])
-        sheet.data_validation(
-            "B2",
-            {
-                "validate": "list",
-                "source": f"TechnicalList!D1:D{len(well_param_name)}",
-            },
-        )
-        sheet.data_validation(
-            "B1",
-            {
-                "validate": "list",
-                "source": f"TechnicalList!C1:C{len(calc_name)}",
-            },
-        )
-        sheet.write_row(0, 4, wells_name)
-        self.__write_time(sheet, book, tv, 2, 3)
+        data = {
+            "SheetName": "Wells",
+            "ChooseName1": "Model",
+            "ChooseName2": "Param",
+            "ChooseBaseValue1": calc_name[0],
+            "ChooseBaseValue2": well_param_name[0],
+            "CL1": f"TechnicalList!C1:C{len(calc_name)}",
+            "CL2": f"TechnicalList!D1:D{len(well_param_name)}",
+            "ColumnName": wells_name,
+            "ModelName": "$B$1",
+            "ObjectName": "INDEX($1:$1,COLUMN())",
+            "ParamName": "$B$2",
+        }
+        self.universal_notation(book, tv, data)
 
-        nf = book.add_format({"num_format": "0.00"})
+    def write_well_param(
+        self,
+        book: xlsw.Workbook,
+        tv: TimeVector,
+        wells_name: List[str],
+        calc_name: List[str],
+        well_param_name: List[str],
+    ) -> None:
+        data = {
+            "SheetName": "WellParam",
+            "ChooseName1": "Model",
+            "ChooseName2": "Well",
+            "ChooseBaseValue1": calc_name[0],
+            "ChooseBaseValue2": wells_name[0],
+            "CL1": f"TechnicalList!C1:C{len(calc_name)}",
+            "CL2": f"TechnicalList!A1:A{len(well_param_name)}",
+            "ColumnName": well_param_name,
+            "ModelName": "$B$1",
+            "ObjectName": "$B$2",
+            "ParamName": "INDEX($1:$1,COLUMN())",
+        }
+        self.universal_notation(book, tv, data)
 
-        for col in range(len(wells_name)):
-            for row in range(len(tv.to_datetime64())):
-                sheet.write_formula(row + 2, col + 4, self.formula_by_object, nf)
+    def write_well_model(
+        self,
+        book: xlsw.Workbook,
+        tv: TimeVector,
+        wells_name: List[str],
+        calc_name: List[str],
+        well_param_name: List[str],
+    ) -> None:
+        data = {
+            "SheetName": "WellModel",
+            "ChooseName1": "Param",
+            "ChooseName2": "Well",
+            "ChooseBaseValue1": well_param_name[0],
+            "ChooseBaseValue2": wells_name[0],
+            "CL1": f"TechnicalList!D1:D{len(wells_name)}",
+            "CL2": f"TechnicalList!A1:A{len(well_param_name)}",
+            "ColumnName": calc_name,
+            "ModelName": "INDEX($1:$1,COLUMN())",
+            "ObjectName": "$B$2",
+            "ParamName": "$B$1",
+        }
+        self.universal_notation(book, tv, data)
 
     def write_group(
         self,
@@ -834,69 +858,20 @@ class CalcExcelReporter:
         calc_name: List[str],
         group_param_name: List[str],
     ) -> None:
-        sheet = book.add_worksheet("Group")
-        sheet.write(0, 0, "Model")
-        sheet.write(1, 0, "Param")
-        sheet.write(0, 1, calc_name[0])
-        sheet.write(1, 1, group_param_name[0])
-        sheet.data_validation(
-            "B2",
-            {
-                "validate": "list",
-                "source": f"TechnicalList!E1:E{len(group_param_name)}",
-            },
-        )
-        sheet.data_validation(
-            "B1",
-            {
-                "validate": "list",
-                "source": f"TechnicalList!C1:C{len(calc_name)}",
-            },
-        )
-        sheet.write_row(0, 4, group_name)
-        self.__write_time(sheet, book, tv, 2, 3)
-
-        nf = book.add_format({"num_format": "0.00"})
-
-        for col in range(len(group_name)):
-            for row in range(len(tv.to_datetime64())):
-                sheet.write_formula(row + 2, col + 4, self.formula_by_object, nf)
-
-    def write_well_param(
-        self,
-        book: xlsw.Workbook,
-        tv: TimeVector,
-        well_name: List[str],
-        calc_name: List[str],
-        well_param_name: List[str],
-    ) -> None:
-        sheet = book.add_worksheet("WellParam")
-        sheet.write(0, 0, "Model")
-        sheet.write(1, 0, "Well")
-        sheet.write(0, 1, calc_name[0])
-        sheet.write(1, 1, well_name[0])
-        sheet.data_validation(
-            "B2",
-            {
-                "validate": "list",
-                "source": f"TechnicalList!A1:A{len(well_param_name)}",
-            },
-        )
-        sheet.data_validation(
-            "B1",
-            {
-                "validate": "list",
-                "source": f"TechnicalList!C1:C{len(calc_name)}",
-            },
-        )
-        sheet.write_row(0, 4, well_param_name)
-        self.__write_time(sheet, book, tv, 2, 3)
-
-        nf = book.add_format({"num_format": "0.00"})
-
-        for col in range(len(well_param_name)):
-            for row in range(len(tv.to_datetime64())):
-                sheet.write_formula(row + 2, col + 4, self.formula_by_param, nf)
+        data = {
+            "SheetName": "Group",
+            "ChooseName1": "Model",
+            "ChooseName2": "Param",
+            "ChooseBaseValue1": calc_name[0],
+            "ChooseBaseValue2": group_param_name[0],
+            "CL1": f"TechnicalList!C1:C{len(calc_name)}",
+            "CL2": f"TechnicalList!E1:E{len(group_param_name)}",
+            "ColumnName": group_name,
+            "ModelName": "$B$1",
+            "ObjectName": "INDEX($1:$1,COLUMN())",
+            "ParamName": "$B$2",
+        }
+        self.universal_notation(book, tv, data)
 
     def write_group_param(
         self,
@@ -906,69 +881,20 @@ class CalcExcelReporter:
         calc_name: List[str],
         group_param_name: List[str],
     ) -> None:
-        sheet = book.add_worksheet("GroupParam")
-        sheet.write(0, 0, "Model")
-        sheet.write(1, 0, "Group")
-        sheet.write(0, 1, calc_name[0])
-        sheet.write(1, 1, group_name[0])
-        sheet.data_validation(
-            "B2",
-            {
-                "validate": "list",
-                "source": f"TechnicalList!B1:B{len(group_name)}",
-            },
-        )
-        sheet.data_validation(
-            "B1",
-            {
-                "validate": "list",
-                "source": f"TechnicalList!C1:C{len(calc_name)}",
-            },
-        )
-        sheet.write_row(0, 4, group_param_name)
-        self.__write_time(sheet, book, tv, 2, 3)
-
-        nf = book.add_format({"num_format": "0.00"})
-
-        for col in range(len(group_param_name)):
-            for row in range(len(tv.to_datetime64())):
-                sheet.write_formula(row + 2, col + 4, self.formula_by_param, nf)
-
-    def write_well_model(
-        self,
-        book: xlsw.Workbook,
-        tv: TimeVector,
-        well_name: List[str],
-        calc_name: List[str],
-        well_param_name: List[str],
-    ) -> None:
-        sheet = book.add_worksheet("WellModel")
-        sheet.write(0, 0, "Param")
-        sheet.write(1, 0, "Well")
-        sheet.write(0, 1, well_param_name[0])
-        sheet.write(1, 1, well_name[0])
-        sheet.data_validation(
-            "B2",
-            {
-                "validate": "list",
-                "source": f"TechnicalList!A1:A{len(well_param_name)}",
-            },
-        )
-        sheet.data_validation(
-            "B1",
-            {
-                "validate": "list",
-                "source": f"TechnicalList!D1:D{len(well_param_name)}",
-            },
-        )
-        sheet.write_row(0, 4, calc_name)
-        self.__write_time(sheet, book, tv, 2, 3)
-
-        nf = book.add_format({"num_format": "0.00"})
-
-        for col in range(len(calc_name)):
-            for row in range(len(tv.to_datetime64())):
-                sheet.write_formula(row + 2, col + 4, self.formula_by_model, nf)
+        data = {
+            "SheetName": "GroupParam",
+            "ChooseName1": "Model",
+            "ChooseName2": "Well",
+            "ChooseBaseValue1": calc_name[0],
+            "ChooseBaseValue2": group_name[0],
+            "CL1": f"TechnicalList!C1:C{len(calc_name)}",
+            "CL2": f"TechnicalList!B1:B{len(group_param_name)}",
+            "ColumnName": group_param_name,
+            "ModelName": "$B$1",
+            "ObjectName": "$B$2",
+            "ParamName": "INDEX($1:$1,COLUMN())",
+        }
+        self.universal_notation(book, tv, data)
 
     def write_group_model(
         self,
@@ -978,33 +904,20 @@ class CalcExcelReporter:
         calc_name: List[str],
         group_param_name: List[str],
     ) -> None:
-        sheet = book.add_worksheet("GroupModel")
-        sheet.write(0, 0, "Param")
-        sheet.write(1, 0, "Group")
-        sheet.write(0, 1, group_param_name[0])
-        sheet.write(1, 1, group_name[0])
-        sheet.data_validation(
-            "B2",
-            {
-                "validate": "list",
-                "source": f"TechnicalList!B1:B{len(group_name)}",
-            },
-        )
-        sheet.data_validation(
-            "B1",
-            {
-                "validate": "list",
-                "source": f"TechnicalList!E1:E{len(group_param_name)}",
-            },
-        )
-        sheet.write_row(0, 4, calc_name)
-        self.__write_time(sheet, book, tv, 2, 3)
-
-        nf = book.add_format({"num_format": "0.00"})
-
-        for col in range(len(calc_name)):
-            for row in range(len(tv.to_datetime64())):
-                sheet.write_formula(row + 2, col + 4, self.formula_by_model, nf)
+        data = {
+            "SheetName": "GroupModel",
+            "ChooseName1": "Param",
+            "ChooseName2": "Well",
+            "ChooseBaseValue1": group_param_name[0],
+            "ChooseBaseValue2": group_name[0],
+            "CL1": f"TechnicalList!E1:E{len(group_name)}",
+            "CL2": f"TechnicalList!B1:B{len(group_param_name)}",
+            "ColumnName": calc_name,
+            "ModelName": "INDEX($1:$1,COLUMN())",
+            "ObjectName": "$B$2",
+            "ParamName": "$B$1",
+        }
+        self.universal_notation(book, tv, data)
 
     def create(
         self,
