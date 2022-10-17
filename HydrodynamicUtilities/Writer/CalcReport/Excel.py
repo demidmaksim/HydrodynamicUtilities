@@ -14,7 +14,11 @@ import xlsxwriter as xlsw
 from pathlib import Path
 from HydrodynamicUtilities.Models.EclipseBinaryFile import SUMMARY
 from HydrodynamicUtilities.Models.ParamVector import CumTimeSeriasParam, TimeSeries
-from HydrodynamicUtilities.Models.Time import TimeVector, generate_time_vector
+from HydrodynamicUtilities.Models.Time import (
+    TimeVector,
+    generate_time_vector,
+    TimePoint,
+)
 
 from copy import deepcopy
 
@@ -246,8 +250,9 @@ class FPCWrite(KeywordReport):
         if summary.shape[1] != 1:
             return None
         ts = CumTimeSeriasParam(summary.TimeVector, summary.Values)
-        value = ts.retime(tv)
-        results = value.get_delta_serias()
+        tsm = ts.to_interpolation_model()
+        # value = ts.retime(tv)
+        results = tsm.get_delta(tv)
         return results.values
 
 
@@ -446,8 +451,9 @@ class Request:
     __WVIT = "Нак. зак. воды (п.у.)"
     __GVIT = "Нак. зак. газа (п.у.)"
 
+    __BP9 = "WBP9"
     __BHP = "Забойное давление"
-    __THP = "Забойное давление"
+    __THP = "Устьевое давление"
 
     __OPR = "Добыча нефти"
     __WPR = "Добыча воды"
@@ -469,6 +475,11 @@ class Request:
     __GOR = "Газовый фактор"
     __Comp = "Компенсация"
     __CumComp = "Накопленная Компенсация"
+
+    __PI = "Индекс продуктивности"
+    __PIO = "Индекс продуктивности по нефти"
+    __PIW = "Индекс продуктивности по воде"
+    __PIG = "Индекс продуктивности по газу"
 
     __ths = {
         "well_flag": True,
@@ -496,6 +507,7 @@ class Request:
         self.GIT = CumWrite("GIT", self.__GIT, "м³", True, **self.__bil)
 
         self.WTT = WTT("WTT", "Нак. время. работы", "Дни", True, True, False)
+        self.WT = FPCWrite("WTT", "Время. работы", "Дни", True, True, False)
 
         self.OVPT = CumWrite("OVPT", self.__OVPT, "м³", False, **self.__ths)
         self.WVPT = CumWrite("WVPT", self.__WVPT, "м³", False, **self.__ths)
@@ -505,8 +517,9 @@ class Request:
         self.WVIT = CumWrite("WVIT", self.__OVPT, "м³", False, **self.__ths)
         self.GVIT = CumWrite("GVIT", self.__OVPT, "м³", False, **self.__ths)
 
+        self.BP9 = CumWrite("BP9", self.__BP9, "Бар", False, True, False)
         self.BHP = CumWrite("BHP", self.__BHP, "Бар", False, True, False)
-        self.THP = CumWrite("THP", self.__BHP, "Бар", False, True, False)
+        self.THP = CumWrite("THP", self.__THP, "Бар", False, True, False)
 
         self.OPR = FPCWrite("OPT", self.__OPR, "м³", True, **self.__ths)
         self.WPR = FPCWrite("WPT", self.__WPR, "м³", True, **self.__ths)
@@ -529,6 +542,11 @@ class Request:
         self.Comp = Compensation(self.__Comp, "Доли ед.", True, False, True)
         self.CumComp = CumCompensation(self.__CumComp, "Доли ед.", True, False, True)
 
+        self.PI = CumWrite("PI", self.__PI, "м³/сут/бар", False, True, False)
+        self.PIO = CumWrite("PIO", self.__PIO, "м³/сут/бар", False, True, False)
+        self.PIW = CumWrite("PIW", self.__PIW, "м³/сут/бар", False, True, False)
+        self.PIG = CumWrite("PIG", self.__PIG, "м³/сут/бар", False, True, False)
+
         self.AllField = (
             self.OPT,
             self.WPT,
@@ -538,12 +556,14 @@ class Request:
             self.WIT,
             self.GIT,
             self.WTT,
+            self.WT,
             self.OVPT,
             self.WVPT,
             self.GVPT,
             self.OVIT,
             self.WVIT,
             self.GVIT,
+            self.BP9,
             self.BHP,
             self.THP,
             self.OPR,
@@ -562,6 +582,10 @@ class Request:
             self.GOR,
             self.Comp,
             self.CumComp,
+            self.PI,
+            self.PIO,
+            self.PIW,
+            self.PIG,
         )
         if request is not None:
             self.set_request(request)
@@ -649,7 +673,7 @@ class CalcExcelReporter:
         ")"
     ).replace(" ", "")
 
-    def __init__(self, step: str = "Y", value_step: int = 1) -> None:
+    def __init__(self, step: str = "M", value_step: int = 1) -> None:
         self.Step = step
         self.StepValue = value_step
         pass
@@ -1004,4 +1028,169 @@ class CalcExcelReporter:
         self.write_group(book, tv, gname, cname, gpname)
         self.write_group_param(book, tv, gname, cname, gpname)
         self.write_group_model(book, tv, gname, cname, gpname)
+        book.close()
+
+
+class ColumnarReportCreator:
+    def __init__(
+        self,
+        start: Union[TimePoint, np.datetime64, str] = None,
+        end: Union[TimePoint, np.datetime64, str] = None,
+        step: str = "M",
+        value_step: int = 1,
+    ) -> None:
+        self.Start = self.__init_time(start)
+        self.End = self.__init_time(end)
+        self.Step = step
+        self.StepValue = value_step
+        self.ModelBound = False
+
+    def __init_time(
+        self,
+        time: Union[TimePoint, np.datetime64, str] = None,
+    ) -> Optional[np.datetime64]:
+        if isinstance(time, TimePoint):
+            return time.to_datetime64()
+        elif isinstance(time, str):
+            return np.datetime64(time)
+        elif isinstance(time, np.datetime64):
+            return time
+        elif time is None:
+            return time
+        else:
+            raise TypeError
+
+    def __get_tv(
+        self,
+        summary: List[SUMMARY],
+    ) -> Tuple[TimeVector, TimeVector]:
+        tv = deepcopy(summary[0].TimeVector)
+        for model in summary[1:]:
+            tv.extend(model.TimeVector)
+
+        if self.Start is not None and not self.ModelBound:
+            start = self.Start
+        elif self.Start is not None:
+            start = min([tv.min, self.Start])
+        else:
+            start = tv.min
+
+        if self.End is not None and not self.ModelBound:
+            end = self.End
+        elif self.Start is not None:
+            end = max([tv.max, self.End])
+        else:
+            end = tv.max
+
+        add_tv = generate_time_vector(
+            TimePoint(start),
+            TimePoint(end),
+            self.Step,
+            self.StepValue,
+            flat_borders=False,
+        )
+
+        start_tv = add_tv[:-1]
+        end_tv = add_tv[1:]
+
+        return start_tv, end_tv
+
+    def get_object_group(
+        self,
+        summary: Iterable[SUMMARY],
+        request: Request,
+    ) -> Tuple[List[str], List[str], List[str], List[str], List[str]]:
+        wells_name = []
+        group_name = []
+        calc_name = []
+        for model in summary:
+            wells_name.extend(model.get_well_names())
+            group_name.extend(model.get_group_name())
+            calc_name.append(model.CalcName)
+
+        well_param_name = []
+        group_param_name = []
+
+        for filed in request.AllField:
+            if filed.WellFlag and filed.Print:
+                well_param_name.append(filed.Name)
+            if filed.GroupFlag and filed.Print:
+                group_param_name.append(filed.Name)
+
+        wells_name = list(pd.unique(wells_name))
+        group_name = list(pd.unique(group_name))
+        calc_name = list(pd.unique(calc_name))
+        well_param_name = list(pd.unique(well_param_name))
+        group_param_name = list(pd.unique(group_param_name))
+
+        wells_name.sort()
+        group_name.sort()
+        calc_name.sort()
+        well_param_name.sort()
+        group_param_name.sort()
+
+        return wells_name, group_name, calc_name, well_param_name, group_param_name
+
+    def write_prod_list(
+        self,
+        book: xlsw.Workbook,
+        request: Request,
+        summary: List[SUMMARY],
+        start_tv: TimeVector,
+        end_tv: TimeVector,
+        well_name: List[str],
+    ) -> None:
+        sheet = book.add_worksheet("Prod")
+        nf = book.add_format({"num_format": "0.00"})
+        tf = book.add_format({"num_format": "yyyy-mm"})
+        tfes = book.add_format({"num_format": "yyyy-mm-dd"})
+
+        sheet.write_row(0, 0, ["Период", "Начало", "Окончание", "Модель", "Скважина"])
+        jcol = 5
+        for field in request.get_write_field():
+            if field.WellFlag and field.Print:
+                sheet.write(0, jcol, field.Name, nf)
+                sheet.write(1, jcol, field.get_unit(), nf)
+                jcol += 1
+
+        irow = 2
+        for model in summary:
+            for wname in well_name:
+
+                for tid, tp in enumerate(start_tv.to_datetime_list()):
+                    sheet.write_datetime(irow + tid, 0, tp, tf)
+                for tid, tp in enumerate(start_tv.to_datetime_list()):
+                    sheet.write_datetime(irow + tid, 1, tp, tfes)
+                for tid, tp in enumerate(end_tv.to_datetime_list()):
+                    sheet.write_datetime(irow + tid, 2, tp, tfes)
+
+                mname = model.CalcName
+                sheet.write_column(irow, 3, [mname] * start_tv.shape())
+                sheet.write_column(irow, 4, [wname] * start_tv.shape())
+
+                jcol = 5
+                for field in request.get_write_field():
+                    if field.WellFlag and field.Print:
+                        data = field.get_well(wname, model, start_tv)
+                        multi = field.Mylti
+                        sheet.write_column(irow, jcol, data / multi, nf)
+                        jcol += 1
+
+                irow += start_tv.shape()
+
+    def create(
+        self,
+        path: Union[Path, str],
+        summary: Union[SUMMARY, Iterable[SUMMARY]],
+        request: Request,
+    ) -> None:
+        if isinstance(summary, SUMMARY):
+            summary = [summary]
+        else:
+            summary = list(summary)
+
+        book = xlsw.Workbook(path)
+        start, end = self.__get_tv(summary)
+        wname, gname, cname, wpname, gpname = self.get_object_group(summary, request)
+        self.write_prod_list(book, request, summary, start, end, wname)
         book.close()
