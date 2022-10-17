@@ -101,7 +101,7 @@ def remove_unnecessary(
             md[1:] = (
                 (x[1:] - x[:-1]) ** 2 + (y[1:] - y[:-1]) ** 2 + (z[1:] - z[:-1]) ** 2
             )
-            new[column] = md ** 0.5
+            new[column] = md**0.5
         else:
             new[column] = df[column].values
 

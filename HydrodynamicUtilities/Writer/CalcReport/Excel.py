@@ -13,7 +13,11 @@ import pandas as pd
 import xlsxwriter as xlsw
 from pathlib import Path
 from HydrodynamicUtilities.Models.EclipseBinaryFile import SUMMARY
-from HydrodynamicUtilities.Models.ParamVector import CumTimeSeriasParam, TimeSeries
+from HydrodynamicUtilities.Models.ParamVector import (
+    CumTimeSeriasParam,
+    RateTimeSeriasParam,
+    TimeSeries,
+)
 from HydrodynamicUtilities.Models.Time import (
     TimeVector,
     generate_time_vector,
@@ -135,40 +139,26 @@ class WTT(KeywordReport):
 
         if try_summary.shape[1] != 1:
             try:
-                periods = tv.get_periods()
-                op = summary.get(f"WOPT", name).to_cum_time_series()
-                wp = summary.get(f"WOPT", name).to_cum_time_series()
-                gp = summary.get(f"WOPT", name).to_cum_time_series()
+                tot_mn = ("WOPT", "WWPT", "WGPT", "WOIT", "WWIT", "WGIT")
+                rat_mn = ("WOPR", "WWPR", "WGPR", "WOIR", "WWIR", "WGIR")
+                for tot, rat in zip(tot_mn, rat_mn):
+                    op = summary.get(tot, name).to_cum_time_series()
+                    dop = op.get_delta_serias()
+                    op = summary.get(rat, name).to_rate_time_series()
+                    op[op.values == 0] = 1
+                    top = dop.values[:-1] / op.values[1:]
+                    if sum(top) > 0:
+                        top = np.concatenate((top, [top[-1]]))
+                        ts = RateTimeSeriasParam(summary.TimeVector, top)
+                        ts = ts.get_cum_series()
+                        return ts.retime(tv).values
 
-                dop = op.get_delta_serias()
-                dwp = wp.get_delta_serias()
-                dgp = gp.get_delta_serias()
+                    if tot == "WGIT":
+                        top = np.concatenate((top, [top[-1]]))
+                        ts = RateTimeSeriasParam(summary.TimeVector, top)
+                        ts = ts.get_cum_series()
+                        return ts.retime(tv).values
 
-                oi = summary.get(f"WOIT", name).to_cum_time_series()
-                wi = summary.get(f"WOIT", name).to_cum_time_series()
-                gi = summary.get(f"WOIT", name).to_cum_time_series()
-
-                doi = oi.get_delta_serias()
-                dwi = wi.get_delta_serias()
-                dgi = gi.get_delta_serias()
-
-                rate_from_cum = dop + dwp + dgp + doi + dwi + dgi
-
-                op = summary.get(f"WOPR", name).to_rate_time_series()
-                wp = summary.get(f"WOPR", name).to_rate_time_series()
-                gp = summary.get(f"WOPR", name).to_rate_time_series()
-                oi = summary.get(f"WOIR", name).to_rate_time_series()
-                wi = summary.get(f"WOIR", name).to_rate_time_series()
-                gi = summary.get(f"WOIR", name).to_rate_time_series()
-
-                rate = op + wp + gp + oi + wi + gi
-
-                rate_from_cum[rate_from_cum.values == 0] = 0
-                rate[rate.values == 0] = 1
-
-                wefac = rate_from_cum / rate
-                wefac = wefac.retime(tv)
-                return periods * wefac.values
             except ValueError:
                 return None
 
@@ -252,7 +242,7 @@ class FPCWrite(KeywordReport):
         ts = CumTimeSeriasParam(summary.TimeVector, summary.Values)
         tsm = ts.to_interpolation_model(
             bounds_error=False,
-            fill_value=(ts.values.min(), ts.values.max()),
+            fill_value=(min(ts.values), max(ts.values)),
         )
         # value = ts.retime(tv)
         results = tsm.get_delta(tv)
@@ -395,7 +385,7 @@ class Compensation(KeywordReport):
         return value.values
 
 
-class CumCompensation(KeywordReport):
+class CumComp(KeywordReport):
     def __init__(
         self,
         name: str,
@@ -487,14 +477,14 @@ class Request:
     __ths = {
         "well_flag": True,
         "group_flag": True,
-        "mylti": 10 ** 3,
+        "mylti": 10**3,
         "mylti_name": "тыс.",
     }
 
     __bil = {
         "well_flag": True,
         "group_flag": True,
-        "mylti": 10 ** 6,
+        "mylti": 10**6,
         "mylti_name": "млн.",
     }
 
@@ -543,7 +533,7 @@ class Request:
         self.WCT = WaterCut(self.__WCT, "Доли ед.", True, True, True)
         self.GOR = GOR(self.__GOR, "м³/м³", True, True, True)
         self.Comp = Compensation(self.__Comp, "Доли ед.", True, False, True)
-        self.CumComp = CumCompensation(self.__CumComp, "Доли ед.", True, False, True)
+        self.CumComp = CumComp(self.__CumComp, "Доли ед.", True, False, True)
 
         self.PI = CumWrite("PI", self.__PI, "м³/сут/бар", False, True, False)
         self.PIO = CumWrite("PIO", self.__PIO, "м³/сут/бар", False, True, False)
@@ -602,8 +592,8 @@ class Request:
     @staticmethod
     def get_all_time(summary: List[SUMMARY]) -> TimeVector:
         tv = deepcopy(summary[0].TimeVector)
-        for sum in summary[1:]:
-            tv.extend(sum.TimeVector)
+        for model in summary[1:]:
+            tv.extend(model.TimeVector)
 
         return generate_time_vector(tv.min, tv.max, "M", value_step=1)
 
@@ -643,13 +633,28 @@ class CalcExcelReporter:
         ")"
     ).replace(" ", "")
 
+    formula_unit = (
+        "=INDEX("
+        "   Data!$5:$5,"
+        "   1+SUMIFS("
+        "       Data!$1:$1,"
+        "       Data!$2:$2,"
+        "       {ModelName},"
+        "       Data!$3:$3,"
+        "       {ObjectName},"
+        "       Data!$4:$4,"
+        "       {ParamName}"
+        "       )"
+        ")"
+    ).replace(" ", "")
+
     def __init__(self, step: str = "M", value_step: int = 1) -> None:
         self.Step = step
         self.StepValue = value_step
         pass
 
+    @staticmethod
     def __write_time(
-        self,
         sheet: xlsw.workbook.Worksheet,
         book: xlsw.workbook.Workbook,
         tv: TimeVector,
@@ -708,44 +713,44 @@ class CalcExcelReporter:
                             sheet.write_column(5, i, value / field.Mylti, nf)
                         i += 1
 
+    @staticmethod
     def get_object_group(
-        self,
         summary: Iterable[SUMMARY],
         request: Request,
     ) -> Tuple[List[str], List[str], List[str], List[str], List[str]]:
-        wells_name = []
-        group_name = []
-        calc_name = []
+        wname = []
+        gname = []
+        cname = []
         for model in summary:
-            wells_name.extend(model.get_well_names())
-            group_name.extend(model.get_group_name())
-            calc_name.append(model.CalcName)
+            wname.extend(model.get_well_names())
+            gname.extend(model.get_group_name())
+            cname.append(model.CalcName)
 
-        well_param_name = []
-        group_param_name = []
+        wpname = []
+        gpname = []
 
         for filed in request.AllField:
             if filed.WellFlag and filed.Print:
-                well_param_name.append(filed.Name)
+                wpname.append(filed.Name)
             if filed.GroupFlag and filed.Print:
-                group_param_name.append(filed.Name)
+                gpname.append(filed.Name)
 
-        wells_name = list(pd.unique(wells_name))
-        group_name = list(pd.unique(group_name))
-        calc_name = list(pd.unique(calc_name))
-        well_param_name = list(pd.unique(well_param_name))
-        group_param_name = list(pd.unique(group_param_name))
+        wname = list(pd.unique(wname))
+        gname = list(pd.unique(gname))
+        cname = list(pd.unique(cname))
+        wpname = list(pd.unique(wpname))
+        gpname = list(pd.unique(gpname))
 
-        wells_name.sort()
-        group_name.sort()
-        calc_name.sort()
-        well_param_name.sort()
-        group_param_name.sort()
+        wname.sort()
+        gname.sort()
+        cname.sort()
+        wpname.sort()
+        gpname.sort()
 
-        return wells_name, group_name, calc_name, well_param_name, group_param_name
+        return wname, gname, cname, wpname, gpname
 
+    @staticmethod
     def writhe_technical_list(
-        self,
         book: xlsw.Workbook,
         wells_name: List[str],
         group_name: List[str],
@@ -777,9 +782,12 @@ class CalcExcelReporter:
         self.__write_time(sheet, book, tv, 2, 3)
         nf = book.add_format({"num_format": "0.00"})
         formula = self.formula.format(**data)
+        formula_unit = self.formula_unit.format(**data)
         for col in range(len(data["ColumnName"])):
+            sheet.write_formula(1, col + 4, formula_unit, nf)
             for row in range(len(tv.to_datetime64())):
                 sheet.write_formula(row + 2, col + 4, formula, nf)
+
 
     def write_well(
         self,
@@ -932,7 +940,8 @@ class CalcExcelReporter:
 
         book = xlsw.Workbook(path)
         tv = self.__get_tv(summary)
-        wname, gname, cname, wpname, gpname = self.get_object_group(summary, request)
+        fun = self.get_object_group
+        wname, gname, cname, wpname, gpname = fun(summary, request)
         self.writhe(book, summary, tv, request)
         self.writhe_technical_list(book, wname, gname, cname, wpname, gpname)
         self.write_well(book, tv, wname, cname, wpname)
@@ -958,8 +967,8 @@ class ColumnarReportCreator:
         self.StepValue = value_step
         self.ModelBound = False
 
+    @staticmethod
     def __init_time(
-        self,
         time: Union[TimePoint, np.datetime64, str] = None,
     ) -> Optional[np.datetime64]:
         if isinstance(time, TimePoint):
@@ -1008,44 +1017,44 @@ class ColumnarReportCreator:
 
         return start_tv, end_tv
 
+    @staticmethod
     def get_object_group(
-        self,
         summary: Iterable[SUMMARY],
         request: Request,
     ) -> Tuple[List[str], List[str], List[str], List[str], List[str]]:
-        wells_name = []
-        group_name = []
-        calc_name = []
+        wname = []
+        gname = []
+        cname = []
         for model in summary:
-            wells_name.extend(model.get_well_names())
-            group_name.extend(model.get_group_name())
-            calc_name.append(model.CalcName)
+            wname.extend(model.get_well_names())
+            gname.extend(model.get_group_name())
+            cname.append(model.CalcName)
 
-        well_param_name = []
-        group_param_name = []
+        wpname = []
+        gpname = []
 
         for filed in request.AllField:
             if filed.WellFlag and filed.Print:
-                well_param_name.append(filed.Name)
+                wpname.append(filed.Name)
             if filed.GroupFlag and filed.Print:
-                group_param_name.append(filed.Name)
+                gpname.append(filed.Name)
 
-        wells_name = list(pd.unique(wells_name))
-        group_name = list(pd.unique(group_name))
-        calc_name = list(pd.unique(calc_name))
-        well_param_name = list(pd.unique(well_param_name))
-        group_param_name = list(pd.unique(group_param_name))
+        wname = list(pd.unique(wname))
+        gname = list(pd.unique(gname))
+        cname = list(pd.unique(cname))
+        wpname = list(pd.unique(wpname))
+        gpname = list(pd.unique(gpname))
 
-        wells_name.sort()
-        group_name.sort()
-        calc_name.sort()
-        well_param_name.sort()
-        group_param_name.sort()
+        wname.sort()
+        gname.sort()
+        cname.sort()
+        wpname.sort()
+        gpname.sort()
 
-        return wells_name, group_name, calc_name, well_param_name, group_param_name
+        return wname, gname, cname, wpname, gpname
 
+    @staticmethod
     def write_prod_list(
-        self,
         book: xlsw.Workbook,
         request: Request,
         summary: List[SUMMARY],
@@ -1058,7 +1067,9 @@ class ColumnarReportCreator:
         tf = book.add_format({"num_format": "yyyy-mm"})
         tfes = book.add_format({"num_format": "yyyy-mm-dd"})
 
-        sheet.write_row(0, 0, ["Период", "Начало", "Окончание", "Модель", "Скважина"])
+        for_write = ["Период", "Начало", "Окончание", "Модель", "Скважина"]
+        sheet.write_row(0, 0, for_write)
+
         jcol = 5
         for field in request.get_write_field():
             if field.WellFlag and field.Print:
@@ -1104,6 +1115,7 @@ class ColumnarReportCreator:
 
         book = xlsw.Workbook(path)
         start, end = self.__get_tv(summary)
-        wname, gname, cname, wpname, gpname = self.get_object_group(summary, request)
+        fun = self.get_object_group
+        wname, gname, cname, wpname, gpname = fun(summary, request)
         self.write_prod_list(book, request, summary, start, end, wname)
         book.close()
