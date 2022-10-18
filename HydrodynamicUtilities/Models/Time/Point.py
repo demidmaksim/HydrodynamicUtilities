@@ -73,6 +73,11 @@ class TimePoint:
     def to_datetime64(self) -> np.datetime64:
         return self.Date
 
+    def to_str(self, str_format: str = "%Y-%m-%d %H:%M:%S") -> str:
+        npdate = str(self.Date.astype(dtype="datetime64[s]"))
+        str_date = datetime.strptime(npdate, "%Y-%m-%dT%H:%M:%S")
+        return datetime.strftime(str_date, str_format)
+
 
 def _to_datetime64(date: valid_formats) -> np.datetime64:
     if type(date) == np.datetime64:

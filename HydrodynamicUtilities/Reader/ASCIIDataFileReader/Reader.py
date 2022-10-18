@@ -62,7 +62,7 @@ def convert_to_data_file(
 def convert_to_schedule_dataframe(
     files: ASCIIFilesIndexer,
     data_file: DataFile = None,
-) -> SCHEDULE:
+) -> DataFile:
     if data_file is None:
         data_file = DataFile()
 
@@ -71,7 +71,7 @@ def convert_to_schedule_dataframe(
     idf = files.Indexes.get_dataframe()
 
     if idf is None:
-        return act_sec
+        return data_file
 
     for rid, row in idf.iterrows():
         kw = row["keyword"]
@@ -87,4 +87,4 @@ def convert_to_schedule_dataframe(
             kw_ind = int(row["include"]) - 1
             include_file = files.Entities[kw_ind]
             data_file = convert_to_schedule_dataframe(include_file, data_file)
-    return act_sec
+    return data_file

@@ -95,16 +95,17 @@ class TimeVector:
         return iter(self.to_datetime64())
 
     def __getitem__(self, item: Any) -> Optional[TimeVector, TimePoint]:
-        days = self.Dates[item]
-        if type(days) == np.ndarray:
-            return TimeVector(days)
-        else:
+        if isinstance(item, int):
+            days = self.Dates[item]
             return TimePoint(days)
+        else:
+            days = self.Dates[item]
+            return TimeVector(days)
 
     def __contains__(self, item: Union[np.datetime64, TimePoint]) -> bool:
-        if type(item) == np.datetime64:
+        if isinstance(item, np.datetime64):
             return item in self.Dates
-        elif type(item) == np.datetime64:
+        elif isinstance(item, TimePoint):
             return item.Date in self.Dates
         else:
             raise TypeError
