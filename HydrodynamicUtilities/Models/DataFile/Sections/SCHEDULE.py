@@ -98,7 +98,23 @@ class SCHEDULECreator(BaseKeywordCreator):
         return dates
 
     @staticmethod
+    def get_date(data_file: DataFile) -> np.datetime64:
+        if data_file.SCHEDULE.DATES is None:
+            try:
+                date = data_file.RUNSPEC.get_start_date()
+                if date is None:
+                    date = np.datetime64("NaT")
+                else:
+                    date = date.to_datetime64()
+            except:
+                date = np.datetime64("NaT")
+        else:
+            date = data_file.SCHEDULE.DATES.get_last_time()
+        return date
+
+    @classmethod
     def famous_keyword(
+        cls,
         adata: ASCIIText,
         kw: str,
         data_file: DataFile,
@@ -107,17 +123,7 @@ class SCHEDULECreator(BaseKeywordCreator):
         while not adata.empty():
             target_data = adata.to_slash(True)
             if not target_data.empty():
-                if data_file.SCHEDULE.DATES is None:
-                    try:
-                        date = data_file.RUNSPEC.get_start_date()
-                        if date is None:
-                            date = np.datetime64("NaT")
-                        else:
-                            date = date.to_datetime64()
-                    except:
-                        date = np.datetime64("NaT")
-                else:
-                    date = data_file.SCHEDULE.DATES.get_last_time()
+                date = cls.get_date(data_file)
                 if kw != ARITHMETIC.__name__:
                     sr = ScheduleRow(ss.Pattern, [date] + target_data.split())
                 else:
@@ -134,13 +140,14 @@ class SCHEDULECreator(BaseKeywordCreator):
     @staticmethod
     def __get_well_bore_name(adata: ASCIIRow) -> Tuple[str, int]:
         data = str(adata).strip()
+        data = data.replace("'", "")
         if ":" in str(adata):
             ind = data.index(":")
-            return data[:ind], int(data[ind:])
+            return data[:ind], int(data[ind + 1 :])
         else:
             return str(adata), 0
 
-    def welltrack_keyword(self, adata: ASCIIText) -> Keyword:
+    def welltrack_keyword(self, adata: ASCIIText, data_file: DataFile) -> Keyword:
         ss = ScheduleSheet(WELLTRACK)
         wdata = adata.get_first_word(True)
         wname, bname = self.__get_well_bore_name(wdata)
@@ -158,6 +165,7 @@ class SCHEDULECreator(BaseKeywordCreator):
         df[WELLTRACK.WellName] = wname
         df[WELLTRACK.BoreName] = bname
         df[WELLTRACK.PointNumber] = df.index
+        df["Time"] = self.get_date(data_file)
         ss.DF = df
         return SCHEDULEKeyword(WELLTRACK.__name__, ss)
 
@@ -169,7 +177,7 @@ class SCHEDULECreator(BaseKeywordCreator):
         kw = adata.get_keyword(True)
         adata = adata.replace_multiplication()
         if str(kw).upper() == WELLTRACK.__name__:
-            return self.welltrack_keyword(adata)
+            return self.welltrack_keyword(adata, data_file)
         elif str(kw).upper() in ScheduleKeyword.keyword.keys():
             return self.famous_keyword(adata, str(kw), data_file)
         elif str(kw) == "DATES":
@@ -214,6 +222,10 @@ class SCHEDULE(Section):
 
         else:
             super().__setattr__(key, value)
+
+    @classmethod
+    def get_famous_keywords(cls) -> List[str]:
+        return list(ScheduleKeyword.keyword.keys())
 
     @classmethod
     def get_constructor(cls) -> Type[BaseKeywordCreator]:

@@ -2,6 +2,7 @@ from HydrodynamicUtilities.Models.DataFile import (
     ASCIIFilesIndexer,
     DataFile,
     Section,
+    SCHEDULE,
 )
 from pathlib import Path
 import time
@@ -56,3 +57,34 @@ def convert_to_data_file(
             setattr(act_sec, kw, kw_data)
 
     return data_file
+
+
+def convert_to_schedule_dataframe(
+    files: ASCIIFilesIndexer,
+    data_file: DataFile = None,
+) -> SCHEDULE:
+    if data_file is None:
+        data_file = DataFile()
+
+    act_sec = data_file.SCHEDULE
+    famous_kw = act_sec.get_famous_keywords()
+    idf = files.Indexes.get_dataframe()
+
+    if idf is None:
+        return act_sec
+
+    for rid, row in idf.iterrows():
+        kw = row["keyword"]
+        if kw in famous_kw or kw == "DATES":
+            start = int(row["start"])
+            finish = int(row["finish"])
+            string_data = files.get_text()[start:finish]
+            creator = act_sec.get_constructor()
+            kw_data = creator().create(string_data, data_file)
+            setattr(act_sec, kw, kw_data)
+
+        elif kw in ("INCLUDE",):
+            kw_ind = int(row["include"]) - 1
+            include_file = files.Entities[kw_ind]
+            data_file = convert_to_schedule_dataframe(include_file, data_file)
+    return act_sec

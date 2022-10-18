@@ -16,9 +16,15 @@ class LineIndexes:
         self.ID = []
         self.KeyWord = []
 
+    def __repr__(self) -> str:
+        return f"LineIndexes {len(self.KeyWord)}"
+
     def append(self, ind: int, keyword):
         self.ID.append(ind)
         self.KeyWord.append(keyword)
+
+    def check_(self) -> None:
+        pass
 
     def get_dataframe(self) -> Optional[pd.DataFrame]:
         if not self.ID:
@@ -195,6 +201,11 @@ class ASCIIRow:
 
     def __str__(self) -> str:
         return self.__data
+
+    def strip_slash(self) -> ASCIIRow:
+        # TODO
+        data = self.__data
+        return ASCIIRow(data)
 
 
 class ASCIIText:

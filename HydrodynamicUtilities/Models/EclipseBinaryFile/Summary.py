@@ -351,10 +351,16 @@ class SUMMARY(EclipseBinaryData):
         if calc_method is None:
             if self.shape[1] != 1:
                 raise ValueError
-            return RateTimeSeriasParam(self.TimeVector, self.Values.T[0], method=method,)
+            return RateTimeSeriasParam(
+                self.TimeVector,
+                self.Values.T[0],
+                method=method,
+            )
         elif calc_method == "sum":
             return RateTimeSeriasParam(
-                self.TimeVector, self.Values.sum(axis=1), method=method,
+                self.TimeVector,
+                self.Values.sum(axis=1),
+                method=method,
             )
         else:
             raise KeyError

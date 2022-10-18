@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import Union, List, Tuple, Optional, Dict
+    from typing import Union, List, Tuple, Optional, Dict, Any
 
 from typing import Iterable
 
@@ -367,21 +367,21 @@ class Compensation(KeywordReport):
         tv: TimeVector,
         otype: str,
     ) -> Optional[np.ndarray]:
-        ws = summary.get(f"{otype}VPT", name)
-        ls = summary.get(f"{otype}VIT", name)
+        prod = summary.get(f"{otype}VPT", name)
+        inje = summary.get(f"{otype}VIT", name)
 
-        if ws.shape[1] != 1 or ls.shape[1] != 1:
+        if prod.shape[1] != 1 or inje.shape[1] != 1:
             return None
 
-        wtts = CumTimeSeriasParam(ws.TimeVector, ws.Values)
-        ltts = CumTimeSeriasParam(ls.TimeVector, ls.Values)
-        wtts = wtts.retime(tv)
-        ltts = ltts.retime(tv)
-        wrts = wtts.get_delta_serias()
-        lrts = ltts.get_delta_serias()
-        wrts[wrts.values == 0] = 0
-        lrts[lrts.values == 0] = 1
-        value = wrts / lrts
+        cum_prod = CumTimeSeriasParam(prod.TimeVector, prod.Values)
+        cum_inje = CumTimeSeriasParam(inje.TimeVector, inje.Values)
+        cum_prod = cum_prod.retime(tv)
+        cum_inje = cum_inje.retime(tv)
+        prod_delta = cum_prod.get_delta_serias()
+        inje_delta = cum_inje.get_delta_serias()
+        prod_delta[prod_delta.values == 0] = 1
+        inje_delta[inje_delta.values == 0] = 0
+        value = inje_delta / prod_delta
         return value.values
 
 
@@ -467,7 +467,7 @@ class Request:
     __WCT = "Обводненность"
     __GOR = "Газовый фактор"
     __Comp = "Компенсация"
-    __CumComp = "Накопленная Компенсация"
+    __CumComp = "Нак. Компенсация"
 
     __PI = "Индекс продуктивности"
     __PIO = "Индекс продуктивности по нефти"
@@ -477,14 +477,14 @@ class Request:
     __ths = {
         "well_flag": True,
         "group_flag": True,
-        "mylti": 10**3,
+        "mylti": 10 ** 3,
         "mylti_name": "тыс.",
     }
 
     __bil = {
         "well_flag": True,
         "group_flag": True,
-        "mylti": 10**6,
+        "mylti": 10 ** 6,
         "mylti_name": "млн.",
     }
 
@@ -581,13 +581,19 @@ class Request:
             self.PIG,
         )
         if request is not None:
-            self.set_request(request)
+            self.switch_upload(request)
 
-    def set_request(self, request: Iterable[Tuple[str, bool]]) -> None:
+    def switch_upload(self, request: Iterable[Tuple[str, bool]]) -> None:
         for name, what in request:
             atr = getattr(self, name)
             if isinstance(atr, KeywordReport):
                 atr.Print = name
+
+    def set_request(self, data: Dict[str, Dict[str, Any]]) -> None:
+        for name, setting in data.items():
+            atr = getattr(self, name)
+            for name_value, value in setting.items():
+                setattr(atr, name_value, value)
 
     @staticmethod
     def get_all_time(summary: List[SUMMARY]) -> TimeVector:
@@ -612,6 +618,11 @@ class Request:
     def get_write_field(self) -> Iterable[KeywordReport]:
         for value in self.AllField:
             yield value
+
+    def set_unit_multiplier(self) -> None:
+        for field in self.get_write_field():
+            field.Mylti = 1
+            field.MyltiName = ""
 
 
 class CalcExcelReporter:
@@ -787,7 +798,6 @@ class CalcExcelReporter:
             sheet.write_formula(1, col + 4, formula_unit, nf)
             for row in range(len(tv.to_datetime64())):
                 sheet.write_formula(row + 2, col + 4, formula, nf)
-
 
     def write_well(
         self,

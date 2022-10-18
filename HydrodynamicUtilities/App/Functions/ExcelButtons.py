@@ -41,7 +41,7 @@ class AsciiReaderApp:
     ) -> None:
         for path in path_list:
             data = read_schedule_section(path)
-            sdf = data.SCHEDULE.SDF
+            sdf = data.SCHEDULE.Sdf
             filename, file_extension = os.path.splitext(path.name)
             write_xlsx(sdf, target_path / f"{filename}.xlsx")
             text = f"Completed!\t" f"File {target_path}/{filename}/.xlsx Created!"
@@ -53,7 +53,7 @@ class AsciiReaderApp:
         all_sdf = ScheduleDataframe()
         for path in path_list:
             data = read_schedule_section(path)
-            sdf = data.SCHEDULE.SDF
+            sdf = data.SCHEDULE.Sdf
             all_sdf = all_sdf + sdf
 
         filename, file_extension = os.path.splitext(path_list[0].name)

@@ -6,7 +6,7 @@ import numpy as np
 
 if TYPE_CHECKING:
     from typing import Dict, List, Type, Any, Iterator, Tuple, Optional, Union, Iterable
-
+    import io
 
 import pandas as pd
 
@@ -20,7 +20,11 @@ from HydrodynamicUtilities.Models.Time.Vector import TimeVector
 
 
 class ScheduleRow:
-    def __init__(self, pattern: Type[BaseKeyWord], data: Iterable = None) -> None:
+    def __init__(
+        self,
+        pattern: Type[BaseKeyWord],
+        data: Iterable = None,
+    ) -> None:
         self.Pattern = pattern
         self.DF = pd.Series(index=("Time",) + pattern.Order, dtype=object)
         if data is not None:
@@ -145,8 +149,8 @@ class ScheduleSheet:
         item: Union[np.datetime64, np.ndarray],
     ) -> Optional[ScheduleSheet]:
         new = deepcopy(self)
-        if type(item) == np.datetime64:
-            pattern = self.DF["Time"].values == item
+        if isinstance(item, np.datetime64):
+            pattern = self.DF["Time"].values.astype(np.datetime64) == item
             new.DF = self.DF[pattern]
         elif type(item) == np.ndarray:
             if type(item[0]) == np.datetime64:
@@ -179,7 +183,10 @@ class ScheduleSheet:
                 results.append((key, None))
         return iter(results)
 
-    def __add__(self, other: Union[ScheduleSheet, ScheduleRow]) -> ScheduleSheet:
+    def __add__(
+        self,
+        other: Union[ScheduleSheet, ScheduleRow],
+    ) -> ScheduleSheet:
         if other is None:
             return self
 
@@ -247,7 +254,10 @@ class ScheduleSheet:
             new.DF = new_df
             return new
 
-    def drop_not_nan_time(self, in_place: bool = True) -> Optional[ScheduleSheet]:
+    def drop_not_nan_time(
+        self,
+        in_place: bool = True,
+    ) -> Optional[ScheduleSheet]:
         pattern = pd.isna(self.DF["Time"])
         new_df = self.DF[pattern]
         if in_place:
@@ -258,11 +268,26 @@ class ScheduleSheet:
             new.DF = new_df
             return new
 
+    def get_nan_time(self) -> Optional[ScheduleSheet]:
+        pattern = pd.isna(self.DF["Time"])
+        new_df = self.DF[pattern]
+        if not new_df.empty:
+            new = deepcopy(self)
+            new.DF = new_df
+            return new
+        else:
+            return None
+
     def empty(self) -> bool:
         return self.DF.empty
 
     def add_row(self, data: ScheduleRow) -> None:
         self.DF.loc[len(self.DF)] = data.DF
+
+    def to_string(
+        self, path_or_buf: Union[str, io.StringIO] = None
+    ) -> Union[str, io.StringIO]:
+        return self.Pattern.to_string(self.DF, path_or_buf)
 
 
 class ScheduleDataframe:
