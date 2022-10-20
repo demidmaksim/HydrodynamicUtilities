@@ -145,7 +145,7 @@ class SCHEDULECreator(BaseKeywordCreator):
             ind = data.index(":")
             return data[:ind], int(data[ind + 1 :])
         else:
-            return str(adata), 0
+            return str(data), 0
 
     def welltrack_keyword(self, adata: ASCIIText, data_file: DataFile) -> Keyword:
         ss = ScheduleSheet(WELLTRACK)

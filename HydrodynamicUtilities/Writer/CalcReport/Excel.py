@@ -477,14 +477,14 @@ class Request:
     __ths = {
         "well_flag": True,
         "group_flag": True,
-        "mylti": 10**3,
+        "mylti": 10 ** 3,
         "mylti_name": "тыс.",
     }
 
     __bil = {
         "well_flag": True,
         "group_flag": True,
-        "mylti": 10**6,
+        "mylti": 10 ** 6,
         "mylti_name": "млн.",
     }
 
