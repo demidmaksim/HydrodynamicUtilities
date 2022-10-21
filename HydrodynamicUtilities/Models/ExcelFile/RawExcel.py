@@ -13,7 +13,7 @@ import datetime as dt
 
 from pathlib import Path
 
-from .Converters.Converters import ConvertorToRateWellData
+from .Converters.History import ConvertorToRateWellData
 from ..HistoryData import (
     WellMeasurement,
     WellHistory,
@@ -24,8 +24,9 @@ from ..HistoryData import (
 )
 from ..Time import TimeVector, TimeDelta, TimePoint
 from ..Strategy import ScheduleDataframe, ScheduleSheet, Strategy
-from ..Source.EclipseScheduleNames import BaseKeyWord, ScheduleKeyword, WELLTRACK
+from ..Source.EclipseScheduleNames import BaseKeyWord, ScheduleKeyword, WELLTRACK, FRACTURE_SPECS, COMPDATMD
 from ..ParamVector import TimeSeries
+from .Converters.DesignPattern import FractureCreator, CompdatmdCreator
 
 
 def excel_time_to_time_vector(etime: np.ndarray) -> TimeVector:
@@ -94,20 +95,40 @@ def remove_unnecessary(
 
     for column in keyword_pattern.Order:
         if column == "MD" and column not in df.columns:
-            x = df[WELLTRACK.X].values
-            y = df[WELLTRACK.Y].values
-            z = df[WELLTRACK.Z].values
-            md = np.zeros(x.shape)
-            md[1:] = (
-                (x[1:] - x[:-1]) ** 2 + (y[1:] - y[:-1]) ** 2 + (z[1:] - z[:-1]) ** 2
-            )
-            new[column] = md ** 0.5
+            pass
         else:
             new[column] = df[column].values
 
     new = new.dropna(how="all")
+    if issubclass(keyword_pattern, WELLTRACK) and "MD" not in new.columns:
+        new = welltrack(new)
 
     return new
+
+
+def welltrack(df: pd.DataFrame) -> pd.DataFrame:
+    all_md = np.zeros(df[WELLTRACK.BoreName].values.shape)
+    for wname in pd.unique(df[WELLTRACK.WellName]):
+        wdf = df[df[WELLTRACK.WellName] == wname]
+        for bname in pd.unique(wdf[WELLTRACK.BoreName]):
+            bdf = wdf[wdf[WELLTRACK.BoreName] == bname]
+            x = bdf[WELLTRACK.X].values
+            y = bdf[WELLTRACK.Y].values
+            z = bdf[WELLTRACK.Z].values
+            md = np.zeros(x.shape)
+            md[1:] = (
+                (x[1:] - x[:-1]) ** 2
+                + ((y[1:] - y[:-1]) ** 2)
+                + ((z[1:] - z[:-1]) ** 2)
+            )
+            md = md ** 0.5
+            md = md.cumsum()
+            all_md[
+                (df[WELLTRACK.WellName] == wname) & (df[WELLTRACK.BoreName] == bname)
+            ] = md
+    df[WELLTRACK.MD] = all_md
+    df[WELLTRACK.WellName] = df[WELLTRACK.WellName].astype(str).str.upper()
+    return df
 
 
 class RawExcelSheet:
@@ -278,6 +299,22 @@ class RawExcelFile:
                 sheet = value.get_events(keyword_name=key)
                 if not sheet.empty():
                     sdf = sdf + sheet
+
+        if "FrackBinding" in self:
+            wsheet = getattr(sdf, WELLTRACK.__name__)
+            df = FractureCreator().get_fracture(self, wsheet)
+            sheet = ScheduleSheet(FRACTURE_SPECS)
+            sheet.DF = df
+            if not sheet.empty:
+                sdf = sdf + sheet
+
+        if "FilterBinding" in self:
+            wsheet = sdf[WELLTRACK.__name__]
+            df = CompdatmdCreator().get_compdatmd(self, wsheet)
+            sheet = ScheduleSheet(FRACTURE_SPECS)
+            sheet.DF = df
+            if not sheet.empty:
+                sdf = sdf + sheet
 
         if sdf.empty():
             return None
