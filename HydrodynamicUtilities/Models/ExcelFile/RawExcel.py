@@ -27,6 +27,8 @@ from ..Strategy import ScheduleDataframe, ScheduleSheet, Strategy
 from ..Source.EclipseScheduleNames import BaseKeyWord, ScheduleKeyword, WELLTRACK, FRACTURE_SPECS, COMPDATMD
 from ..ParamVector import TimeSeries
 from .Converters.DesignPattern import FractureCreator, CompdatmdCreator
+from HydrodynamicUtilities.Models.RockCore.RPP import SimpleRPP, TwoPhaseRPP
+from HydrodynamicUtilities.Models.RockCore.Samples import BaseSamples
 
 
 def excel_time_to_time_vector(etime: np.ndarray) -> TimeVector:
@@ -212,6 +214,33 @@ class RawExcelSheet:
         vfp_data = self.__get_vfp_history(vfp_column_name)
         valve_data = self.__get_valve(valve_size_column_name)
         return ConstructionHistory(vfp_data, valve_data)
+
+    def convert_to_simple_core_data(self) -> List[TwoPhaseRPP]:
+        results = list()
+        first_head = self.DF.iloc[0, :].fillna(method="ffill")
+        second_head = self.DF.iloc[1, :].fillna(method="ffill")
+        df = self.DF.iloc[3:, :]
+        df = pd.DataFrame(df.values, columns=[first_head, second_head])
+        for sample in pd.unique(df["Образец"].iloc[:, 0]):
+            sdf = df[df["Образец"].iloc[:, 0] == sample]
+            perm = sdf["Проницаемость по газу"].iloc[0, 0]
+            sample = BaseSamples(str(sample), perm, 0)
+            soil = sdf["Насыщенность"]["Нефть"].values
+            swat = sdf["Насыщенность"]["Вода"].values
+            sgas = sdf["Насыщенность"]["Газ"].values
+            if sum(sgas) == 0:
+                operm = sdf["Фазовая проницаемость"]["Нефть"].values
+                wperm = sdf["Фазовая проницаемость"]["Вода"].values
+                orpp = SimpleRPP(soil, operm, "oil", sample)
+                wrpp = SimpleRPP(swat, wperm, "wat", sample)
+                results.append(TwoPhaseRPP(wrpp, orpp))
+            else:
+                gperm = sdf["Фазовая проницаемость"]["Газ"].values
+                operm = sdf["Фазовая проницаемость"]["Нефть"].values
+                grpp = SimpleRPP(sgas, gperm, "gas", sample)
+                orpp = SimpleRPP(soil, operm, "oil", sample)
+                results.append(TwoPhaseRPP(grpp, orpp))
+        return results
 
 
 class RawExcelFile:
