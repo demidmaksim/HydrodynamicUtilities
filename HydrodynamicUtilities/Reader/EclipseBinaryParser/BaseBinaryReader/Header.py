@@ -43,6 +43,7 @@ class BinaryHeaderWorker:
         "REAL": 4,
         "CHAR": 8,
         "DOUB": 8,
+        "MESS": 8,
     }
 
     formats: Dict[str, str] = {
@@ -51,6 +52,7 @@ class BinaryHeaderWorker:
         "REAL": "f",
         "CHAR": "c",
         "DOUB": "d",
+        "MESS": "c",
     }
 
 

@@ -87,5 +87,7 @@ def _to_datetime64(date: valid_formats) -> np.datetime64:
     elif type(date) == datetime:
         str_date = datetime.strftime(date, "%Y-%m-%d %H:%M:%S")
         return np.datetime64(str_date)
+    elif isinstance(date, TimePoint):
+        return date.to_datetime64()
     else:
         raise TypeError

@@ -487,10 +487,12 @@ class WellHistory:
         inj_stop_event: StopEventSetting = None,
         # force_event: = None,
         additional_events: ScheduleDataframe = None,
+        add_event_flag: bool = True,
     ) -> None:
         self.WellName = well_name
         self.Measurement = measurement
         self.Constructions = history_of_constructions
+        self.AddEVFlag = add_event_flag
 
         if prod_mode is not None:
             self.ProdMode = prod_mode
@@ -654,6 +656,10 @@ class WellHistory:
             sdf = sdf + self.get_wefac(tv, wefac, data)
         sdf = sdf + self.get_wconhist(tv, self.WEFAC, wefac, data)
         sdf = sdf + self.get_wconinj(tv, self.WEFAC, wefac, data)
+
+        if self.AddEVFlag and self.AdditionalEvents is not None:
+            sdf = sdf + self.AdditionalEvents
+
         return sdf
 
     def presentation(self) -> None:
