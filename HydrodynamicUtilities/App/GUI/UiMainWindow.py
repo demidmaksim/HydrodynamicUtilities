@@ -46,7 +46,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.label_size_step_to_sch_from_excel = QtWidgets.QLabel(self.tab)
-        self.label_size_step_to_sch_from_excel.setObjectName("label_size_step_to_sch_from_excel")
+        self.label_size_step_to_sch_from_excel.setObjectName(
+            "label_size_step_to_sch_from_excel"
+        )
         self.horizontalLayout.addWidget(self.label_size_step_to_sch_from_excel)
         self.spinBox_size_to_sch = QtWidgets.QSpinBox(self.tab)
         self.spinBox_size_to_sch.setMinimum(1)
@@ -56,7 +58,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.spinBox_size_to_sch)
         self.gridLayout_2.addLayout(self.horizontalLayout, 1, 4, 1, 1)
         self.comboBox_choose_value_stepto_sch = QtWidgets.QComboBox(self.tab)
-        self.comboBox_choose_value_stepto_sch.setObjectName("comboBox_choose_value_stepto_sch")
+        self.comboBox_choose_value_stepto_sch.setObjectName(
+            "comboBox_choose_value_stepto_sch"
+        )
         self.comboBox_choose_value_stepto_sch.addItem("")
         self.comboBox_choose_value_stepto_sch.addItem("")
         self.comboBox_choose_value_stepto_sch.addItem("")
@@ -82,13 +86,21 @@ class Ui_MainWindow(object):
         self.dateEdit_end_date_to_sch = QtWidgets.QDateEdit(self.tab)
         self.dateEdit_end_date_to_sch.setWrapping(True)
         self.dateEdit_end_date_to_sch.setFrame(True)
-        self.dateEdit_end_date_to_sch.setButtonSymbols(QtWidgets.QAbstractSpinBox.PlusMinus)
+        self.dateEdit_end_date_to_sch.setButtonSymbols(
+            QtWidgets.QAbstractSpinBox.PlusMinus
+        )
         self.dateEdit_end_date_to_sch.setAccelerated(False)
-        self.dateEdit_end_date_to_sch.setCorrectionMode(QtWidgets.QAbstractSpinBox.CorrectToPreviousValue)
+        self.dateEdit_end_date_to_sch.setCorrectionMode(
+            QtWidgets.QAbstractSpinBox.CorrectToPreviousValue
+        )
         self.dateEdit_end_date_to_sch.setKeyboardTracking(False)
         self.dateEdit_end_date_to_sch.setProperty("showGroupSeparator", False)
-        self.dateEdit_end_date_to_sch.setDateTime(QtCore.QDateTime(QtCore.QDate(2023, 1, 1), QtCore.QTime(21, 0, 0)))
-        self.dateEdit_end_date_to_sch.setCurrentSection(QtWidgets.QDateTimeEdit.YearSection)
+        self.dateEdit_end_date_to_sch.setDateTime(
+            QtCore.QDateTime(QtCore.QDate(2023, 1, 1), QtCore.QTime(21, 0, 0))
+        )
+        self.dateEdit_end_date_to_sch.setCurrentSection(
+            QtWidgets.QDateTimeEdit.YearSection
+        )
         self.dateEdit_end_date_to_sch.setCalendarPopup(True)
         self.dateEdit_end_date_to_sch.setCurrentSectionIndex(2)
         self.dateEdit_end_date_to_sch.setObjectName("dateEdit_end_date_to_sch")
@@ -97,7 +109,9 @@ class Ui_MainWindow(object):
         self.button_add_excel_sch.setObjectName("button_add_excel_sch")
         self.gridLayout_2.addWidget(self.button_add_excel_sch, 0, 0, 1, 1)
         self.dateEdit_start_date_to_sch = QtWidgets.QDateEdit(self.tab)
-        self.dateEdit_start_date_to_sch.setDateTime(QtCore.QDateTime(QtCore.QDate(2022, 1, 1), QtCore.QTime(21, 0, 0)))
+        self.dateEdit_start_date_to_sch.setDateTime(
+            QtCore.QDateTime(QtCore.QDate(2022, 1, 1), QtCore.QTime(21, 0, 0))
+        )
         self.dateEdit_start_date_to_sch.setCalendarPopup(True)
         self.dateEdit_start_date_to_sch.setObjectName("dateEdit_start_date_to_sch")
         self.gridLayout_2.addWidget(self.dateEdit_start_date_to_sch, 1, 1, 1, 1)
@@ -108,10 +122,14 @@ class Ui_MainWindow(object):
         self.label_target_folder_sch.setObjectName("label_target_folder_sch")
         self.gridLayout_5.addWidget(self.label_target_folder_sch, 0, 0, 1, 1)
         self.lineEdit_target_folder_to_sch = QtWidgets.QLineEdit(self.tab)
-        self.lineEdit_target_folder_to_sch.setObjectName("lineEdit_target_folder_to_sch")
+        self.lineEdit_target_folder_to_sch.setObjectName(
+            "lineEdit_target_folder_to_sch"
+        )
         self.gridLayout_5.addWidget(self.lineEdit_target_folder_to_sch, 0, 1, 1, 1)
         self.pushButton_target_folder_to_sch = QtWidgets.QPushButton(self.tab)
-        self.pushButton_target_folder_to_sch.setObjectName("pushButton_target_folder_to_sch")
+        self.pushButton_target_folder_to_sch.setObjectName(
+            "pushButton_target_folder_to_sch"
+        )
         self.gridLayout_5.addWidget(self.pushButton_target_folder_to_sch, 0, 2, 1, 1)
         self.verticalLayout_2.addLayout(self.gridLayout_5)
         self.listWidget_to_sch = QtWidgets.QListWidget(self.tab)
@@ -146,10 +164,14 @@ class Ui_MainWindow(object):
         self.label_target_folder_to_excel.setObjectName("label_target_folder_to_excel")
         self.gridLayout_6.addWidget(self.label_target_folder_to_excel, 0, 0, 1, 1)
         self.lineEdit_target_folder_to_excel = QtWidgets.QLineEdit(self.tab_2)
-        self.lineEdit_target_folder_to_excel.setObjectName("lineEdit_target_folder_to_excel")
+        self.lineEdit_target_folder_to_excel.setObjectName(
+            "lineEdit_target_folder_to_excel"
+        )
         self.gridLayout_6.addWidget(self.lineEdit_target_folder_to_excel, 0, 1, 1, 1)
         self.pushButton_target_folder_to_excel = QtWidgets.QPushButton(self.tab_2)
-        self.pushButton_target_folder_to_excel.setObjectName("pushButton_target_folder_to_excel")
+        self.pushButton_target_folder_to_excel.setObjectName(
+            "pushButton_target_folder_to_excel"
+        )
         self.gridLayout_6.addWidget(self.pushButton_target_folder_to_excel, 0, 2, 1, 1)
         self.verticalLayout_3.addLayout(self.gridLayout_6)
         self.listWidget_to_excel_from_sch = QtWidgets.QListWidget(self.tab_2)
@@ -166,7 +188,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.label_size_step_sch_from_excel = QtWidgets.QLabel(self.tab_3)
-        self.label_size_step_sch_from_excel.setObjectName("label_size_step_sch_from_excel")
+        self.label_size_step_sch_from_excel.setObjectName(
+            "label_size_step_sch_from_excel"
+        )
         self.horizontalLayout_3.addWidget(self.label_size_step_sch_from_excel)
         self.spinBox_size_to_hist = QtWidgets.QSpinBox(self.tab_3)
         self.spinBox_size_to_hist.setMinimum(1)
@@ -176,7 +200,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3.addWidget(self.spinBox_size_to_hist)
         self.gridLayout_4.addLayout(self.horizontalLayout_3, 1, 4, 1, 1)
         self.dateEdit_start_date_hist = QtWidgets.QDateEdit(self.tab_3)
-        self.dateEdit_start_date_hist.setDateTime(QtCore.QDateTime(QtCore.QDate(2010, 1, 1), QtCore.QTime(21, 0, 0)))
+        self.dateEdit_start_date_hist.setDateTime(
+            QtCore.QDateTime(QtCore.QDate(2010, 1, 1), QtCore.QTime(21, 0, 0))
+        )
         self.dateEdit_start_date_hist.setCalendarPopup(True)
         self.dateEdit_start_date_hist.setObjectName("dateEdit_start_date_hist")
         self.gridLayout_4.addWidget(self.dateEdit_start_date_hist, 1, 1, 1, 1)
@@ -200,7 +226,9 @@ class Ui_MainWindow(object):
         self.label_end_hist.setObjectName("label_end_hist")
         self.gridLayout_4.addWidget(self.label_end_hist, 2, 0, 1, 1)
         self.comboBox_choose_value_step_sch = QtWidgets.QComboBox(self.tab_3)
-        self.comboBox_choose_value_step_sch.setObjectName("comboBox_choose_value_step_sch")
+        self.comboBox_choose_value_step_sch.setObjectName(
+            "comboBox_choose_value_step_sch"
+        )
         self.comboBox_choose_value_step_sch.addItem("")
         self.comboBox_choose_value_step_sch.addItem("")
         self.comboBox_choose_value_step_sch.addItem("")
@@ -217,7 +245,9 @@ class Ui_MainWindow(object):
         self.button_delite_excel_hist.setObjectName("button_delite_excel_hist")
         self.gridLayout_4.addWidget(self.button_delite_excel_hist, 0, 1, 1, 1)
         self.dateEdit_end_date_hist = QtWidgets.QDateEdit(self.tab_3)
-        self.dateEdit_end_date_hist.setDateTime(QtCore.QDateTime(QtCore.QDate(2020, 1, 1), QtCore.QTime(21, 0, 0)))
+        self.dateEdit_end_date_hist.setDateTime(
+            QtCore.QDateTime(QtCore.QDate(2020, 1, 1), QtCore.QTime(21, 0, 0))
+        )
         self.dateEdit_end_date_hist.setCalendarPopup(True)
         self.dateEdit_end_date_hist.setObjectName("dateEdit_end_date_hist")
         self.gridLayout_4.addWidget(self.dateEdit_end_date_hist, 2, 1, 1, 1)
@@ -287,7 +317,9 @@ class Ui_MainWindow(object):
         self.lineEdit_target_folder_hist.setObjectName("lineEdit_target_folder_hist")
         self.gridLayout_7.addWidget(self.lineEdit_target_folder_hist, 0, 1, 1, 1)
         self.pushButton_target_folder_hist = QtWidgets.QPushButton(self.tab_3)
-        self.pushButton_target_folder_hist.setObjectName("pushButton_target_folder_hist")
+        self.pushButton_target_folder_hist.setObjectName(
+            "pushButton_target_folder_hist"
+        )
         self.gridLayout_7.addWidget(self.pushButton_target_folder_hist, 0, 2, 1, 1)
         self.verticalLayout.addLayout(self.gridLayout_7)
         self.listWidget_hist = QtWidgets.QListWidget(self.tab_3)
@@ -387,14 +419,18 @@ class Ui_MainWindow(object):
         self.label_24.setObjectName("label_24")
         self.gridLayout_21.addWidget(self.label_24, 1, 0, 1, 1)
         self.checkBox_request_well_param = QtWidgets.QCheckBox(self.frame_2)
-        self.checkBox_request_well_param.setStyleSheet("border-color: rgb(200, 200, 199);")
+        self.checkBox_request_well_param.setStyleSheet(
+            "border-color: rgb(200, 200, 199);"
+        )
         self.checkBox_request_well_param.setText("")
         self.checkBox_request_well_param.setObjectName("checkBox_request_well_param")
         self.gridLayout_21.addWidget(self.checkBox_request_well_param, 1, 2, 1, 1)
         self.checkBox_request_group_object = QtWidgets.QCheckBox(self.frame_2)
         self.checkBox_request_group_object.setText("")
         self.checkBox_request_group_object.setChecked(True)
-        self.checkBox_request_group_object.setObjectName("checkBox_request_group_object")
+        self.checkBox_request_group_object.setObjectName(
+            "checkBox_request_group_object"
+        )
         self.gridLayout_21.addWidget(self.checkBox_request_group_object, 2, 1, 1, 1)
         self.label_25 = QtWidgets.QLabel(self.frame_2)
         self.label_25.setObjectName("label_25")
@@ -408,14 +444,18 @@ class Ui_MainWindow(object):
         self.gridLayout_21.addWidget(self.checkBox_request_group_model, 2, 3, 1, 1)
         self.checkBox__request_group_param = QtWidgets.QCheckBox(self.frame_2)
         self.checkBox__request_group_param.setText("")
-        self.checkBox__request_group_param.setObjectName("checkBox__request_group_param")
+        self.checkBox__request_group_param.setObjectName(
+            "checkBox__request_group_param"
+        )
         self.gridLayout_21.addWidget(self.checkBox__request_group_param, 2, 2, 1, 1)
         self.label_23 = QtWidgets.QLabel(self.frame_2)
         self.label_23.setObjectName("label_23")
         self.gridLayout_21.addWidget(self.label_23, 0, 3, 1, 1)
         self.checkBox_request_well_object = QtWidgets.QCheckBox(self.frame_2)
         self.checkBox_request_well_object.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.checkBox_request_well_object.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
+        self.checkBox_request_well_object.setContextMenuPolicy(
+            QtCore.Qt.DefaultContextMenu
+        )
         self.checkBox_request_well_object.setText("")
         self.checkBox_request_well_object.setChecked(True)
         self.checkBox_request_well_object.setTristate(False)
@@ -468,7 +508,9 @@ class Ui_MainWindow(object):
         self.gridLayout_26.setVerticalSpacing(0)
         self.gridLayout_26.setObjectName("gridLayout_26")
         self.label_35 = QtWidgets.QLabel(self.frame_4)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_35.sizePolicy().hasHeightForWidth())
@@ -478,16 +520,22 @@ class Ui_MainWindow(object):
         self.gridLayout_26.addWidget(self.label_35, 0, 0, 1, 2)
         self.checkBox_request_cum_compensation = QtWidgets.QCheckBox(self.frame_4)
         self.checkBox_request_cum_compensation.setChecked(True)
-        self.checkBox_request_cum_compensation.setObjectName("checkBox_request_cum_compensation")
+        self.checkBox_request_cum_compensation.setObjectName(
+            "checkBox_request_cum_compensation"
+        )
         self.gridLayout_26.addWidget(self.checkBox_request_cum_compensation, 1, 1, 1, 1)
         self.checkBox_request_compensation = QtWidgets.QCheckBox(self.frame_4)
         self.checkBox_request_compensation.setChecked(True)
-        self.checkBox_request_compensation.setObjectName("checkBox_request_compensation")
+        self.checkBox_request_compensation.setObjectName(
+            "checkBox_request_compensation"
+        )
         self.gridLayout_26.addWidget(self.checkBox_request_compensation, 1, 0, 1, 1)
         self.verticalLayout_5.addLayout(self.gridLayout_26)
         self.verticalLayout_10.addWidget(self.frame_4)
         self.frame = QtWidgets.QFrame(self.tab_5)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Maximum)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Maximum
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.frame.sizePolicy().hasHeightForWidth())
@@ -587,10 +635,14 @@ class Ui_MainWindow(object):
         self.verticalLayout_12.addWidget(self.listWidget_for_report)
         self.tabWidget.addTab(self.tab_5, "")
         self.textBrowser_log = QtWidgets.QTextBrowser(self.splitter)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.textBrowser_log.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.textBrowser_log.sizePolicy().hasHeightForWidth()
+        )
         self.textBrowser_log.setSizePolicy(sizePolicy)
         self.textBrowser_log.setObjectName("textBrowser_log")
         self.verticalLayout_6.addWidget(self.splitter)
@@ -605,22 +657,22 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(3)
-        self.pushButton_target_folder_hist.clicked.connect(MainWindow.choose_target_folder_hist) # type: ignore
-        self.pushButton_target_folder_to_excel.clicked.connect(MainWindow.choose_target_folder_to_excel) # type: ignore
-        self.button_add_sch.clicked.connect(MainWindow.add_sch_to_excel) # type: ignore
-        self.button_get_pattern_hist.clicked.connect(MainWindow.create_hist_pattern) # type: ignore
-        self.button_delite_excel_hist.clicked.connect(MainWindow.del_hist) # type: ignore
-        self.button_create_excel_from_sch.clicked.connect(MainWindow.create_excel_from_sch) # type: ignore
-        self.button_add_excel_sch.clicked.connect(MainWindow.add_excel_to_sch) # type: ignore
-        self.button_create_sch.clicked.connect(MainWindow.screate_sch_from_excel) # type: ignore
-        self.button_delite_excel_sch.clicked.connect(MainWindow.del_excel_to_sch) # type: ignore
-        self.pushButton_target_folder_to_sch.clicked.connect(MainWindow.choose_target_folder_to_sch) # type: ignore
-        self.button_delite_sch.clicked.connect(MainWindow.del_sch_to_excel) # type: ignore
-        self.button_check_ecxel_hist.clicked.connect(MainWindow.check_hist_files) # type: ignore
-        self.button_check_ecxel_sch.clicked.connect(MainWindow.scheck_excel_to_sch) # type: ignore
-        self.button_add_excel_hist.clicked.connect(MainWindow.add_hist) # type: ignore
-        self.button_get_pattern_sch.clicked.connect(MainWindow.create_excel_pattern_sch) # type: ignore
-        self.button_create_sch_hist.clicked.connect(MainWindow.create_from_hist_files) # type: ignore
+        self.pushButton_target_folder_hist.clicked.connect(MainWindow.choose_target_folder_hist)  # type: ignore
+        self.pushButton_target_folder_to_excel.clicked.connect(MainWindow.choose_target_folder_to_excel)  # type: ignore
+        self.button_add_sch.clicked.connect(MainWindow.add_sch_to_excel)  # type: ignore
+        self.button_get_pattern_hist.clicked.connect(MainWindow.create_hist_pattern)  # type: ignore
+        self.button_delite_excel_hist.clicked.connect(MainWindow.del_hist)  # type: ignore
+        self.button_create_excel_from_sch.clicked.connect(MainWindow.create_excel_from_sch)  # type: ignore
+        self.button_add_excel_sch.clicked.connect(MainWindow.add_excel_to_sch)  # type: ignore
+        self.button_create_sch.clicked.connect(MainWindow.screate_sch_from_excel)  # type: ignore
+        self.button_delite_excel_sch.clicked.connect(MainWindow.del_excel_to_sch)  # type: ignore
+        self.pushButton_target_folder_to_sch.clicked.connect(MainWindow.choose_target_folder_to_sch)  # type: ignore
+        self.button_delite_sch.clicked.connect(MainWindow.del_sch_to_excel)  # type: ignore
+        self.button_check_ecxel_hist.clicked.connect(MainWindow.check_hist_files)  # type: ignore
+        self.button_check_ecxel_sch.clicked.connect(MainWindow.scheck_excel_to_sch)  # type: ignore
+        self.button_add_excel_hist.clicked.connect(MainWindow.add_hist)  # type: ignore
+        self.button_get_pattern_sch.clicked.connect(MainWindow.create_excel_pattern_sch)  # type: ignore
+        self.button_create_sch_hist.clicked.connect(MainWindow.create_from_hist_files)  # type: ignore
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -631,33 +683,59 @@ class Ui_MainWindow(object):
         self.button_delite_excel_sch.setText(_translate("MainWindow", "Удалить"))
         self.label_size_step_to_sch.setText(_translate("MainWindow", "Временной шаг"))
         self.label_size_step_to_sch_from_excel.setText(_translate("MainWindow", "Шаг"))
-        self.comboBox_choose_value_stepto_sch.setItemText(0, _translate("MainWindow", "Месяц"))
-        self.comboBox_choose_value_stepto_sch.setItemText(1, _translate("MainWindow", "Год"))
-        self.comboBox_choose_value_stepto_sch.setItemText(2, _translate("MainWindow", "День"))
-        self.comboBox_choose_value_stepto_sch.setItemText(3, _translate("MainWindow", "Час"))
+        self.comboBox_choose_value_stepto_sch.setItemText(
+            0, _translate("MainWindow", "Месяц")
+        )
+        self.comboBox_choose_value_stepto_sch.setItemText(
+            1, _translate("MainWindow", "Год")
+        )
+        self.comboBox_choose_value_stepto_sch.setItemText(
+            2, _translate("MainWindow", "День")
+        )
+        self.comboBox_choose_value_stepto_sch.setItemText(
+            3, _translate("MainWindow", "Час")
+        )
         self.label_start_to_sch.setText(_translate("MainWindow", "Дата старта"))
         self.label_in_one_file_to_sch.setText(_translate("MainWindow", "В один файл"))
         self.label_end_to_sch.setText(_translate("MainWindow", "Окончание"))
         self.button_create_sch.setText(_translate("MainWindow", "Собрать"))
         self.button_add_excel_sch.setText(_translate("MainWindow", "Добавить"))
         self.label_target_folder_sch.setText(_translate("MainWindow", "Целевая папка"))
-        self.pushButton_target_folder_to_sch.setText(_translate("MainWindow", "Выбрать"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "В Schedule"))
+        self.pushButton_target_folder_to_sch.setText(
+            _translate("MainWindow", "Выбрать")
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tab), _translate("MainWindow", "В Schedule")
+        )
         self.button_add_sch.setText(_translate("MainWindow", "Добавить"))
         self.button_delite_sch.setText(_translate("MainWindow", "Удалить"))
         self.button_create_excel_from_sch.setText(_translate("MainWindow", "Собрать"))
         self.checkBox_one_file_to_excel.setText(_translate("MainWindow", "В один файл"))
-        self.label_target_folder_to_excel.setText(_translate("MainWindow", "Целевая папка"))
-        self.pushButton_target_folder_to_excel.setText(_translate("MainWindow", "Выбрать"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "В Eccel"))
+        self.label_target_folder_to_excel.setText(
+            _translate("MainWindow", "Целевая папка")
+        )
+        self.pushButton_target_folder_to_excel.setText(
+            _translate("MainWindow", "Выбрать")
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "В Eccel")
+        )
         self.label_size_step_sch_from_excel.setText(_translate("MainWindow", "Шаг"))
         self.label_size_step_sch.setText(_translate("MainWindow", "Временной шаг"))
         self.label_hist.setText(_translate("MainWindow", "Дата старта"))
         self.label_end_hist.setText(_translate("MainWindow", "Окончание"))
-        self.comboBox_choose_value_step_sch.setItemText(0, _translate("MainWindow", "Месяц"))
-        self.comboBox_choose_value_step_sch.setItemText(1, _translate("MainWindow", "Год"))
-        self.comboBox_choose_value_step_sch.setItemText(2, _translate("MainWindow", "День"))
-        self.comboBox_choose_value_step_sch.setItemText(3, _translate("MainWindow", "Час"))
+        self.comboBox_choose_value_step_sch.setItemText(
+            0, _translate("MainWindow", "Месяц")
+        )
+        self.comboBox_choose_value_step_sch.setItemText(
+            1, _translate("MainWindow", "Год")
+        )
+        self.comboBox_choose_value_step_sch.setItemText(
+            2, _translate("MainWindow", "День")
+        )
+        self.comboBox_choose_value_step_sch.setItemText(
+            3, _translate("MainWindow", "Час")
+        )
         self.button_create_sch_hist.setText(_translate("MainWindow", "Собрать"))
         self.button_get_pattern_hist.setText(_translate("MainWindow", "Создать шаблон"))
         self.button_delite_excel_hist.setText(_translate("MainWindow", "Удалить"))
@@ -665,9 +743,13 @@ class Ui_MainWindow(object):
         self.label_in_one_file_sch.setText(_translate("MainWindow", "В один файл"))
         self.button_add_excel_hist.setText(_translate("MainWindow", "Добавить"))
         self.checkBox_wefac.setText(_translate("MainWindow", "WEFAC"))
-        self.checkBox_prod_well_stop.setText(_translate("MainWindow", "Остановки добывающих"))
+        self.checkBox_prod_well_stop.setText(
+            _translate("MainWindow", "Остановки добывающих")
+        )
         self.checkBox_hist_to_excel.setText(_translate("MainWindow", "В Excel"))
-        self.checkBox_inj_well_stop.setText(_translate("MainWindow", "Остановки нагнетательных"))
+        self.checkBox_inj_well_stop.setText(
+            _translate("MainWindow", "Остановки нагнетательных")
+        )
         self.label_3.setText(_translate("MainWindow", "Контроль водонагнетательных"))
         self.label_4.setText(_translate("MainWindow", "Контроль добывающих"))
         self.comboBox_hist_prod_control.setItemText(0, _translate("MainWindow", "LRAT"))
@@ -679,8 +761,12 @@ class Ui_MainWindow(object):
         self.comboBox_hist_prod_control.setItemText(6, _translate("MainWindow", "RESV"))
         self.comboBox_hist_prod_control.setItemText(7, _translate("MainWindow", "BHP"))
         self.comboBox_hist_prod_control.setItemText(8, _translate("MainWindow", "THP"))
-        self.comboBox_hist_prod_control.setItemText(9, _translate("MainWindow", "TGRUP"))
-        self.comboBox_hist_prod_control.setItemText(10, _translate("MainWindow", "NONE"))
+        self.comboBox_hist_prod_control.setItemText(
+            9, _translate("MainWindow", "TGRUP")
+        )
+        self.comboBox_hist_prod_control.setItemText(
+            10, _translate("MainWindow", "NONE")
+        )
         self.comboBox_hist_inj_control.setItemText(0, _translate("MainWindow", "RATE"))
         self.comboBox_hist_inj_control.setItemText(1, _translate("MainWindow", "BHP"))
         self.comboBox_hist_inj_control.setItemText(2, _translate("MainWindow", "THP"))
@@ -688,17 +774,28 @@ class Ui_MainWindow(object):
         self.comboBox_hist_inj_control.setItemText(4, _translate("MainWindow", "GRUP"))
         self.label_target_folder_hist.setText(_translate("MainWindow", "Целевая папка"))
         self.pushButton_target_folder_hist.setText(_translate("MainWindow", "Выбрать"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("MainWindow", "Конвертировать историю"))
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tab_3),
+            _translate("MainWindow", "Конвертировать историю"),
+        )
         self.pushButton_create_report.setText(_translate("MainWindow", "Собрать"))
         self.label_20.setText(_translate("MainWindow", "Формат Data листа"))
-        self.comboBox_choose_report_type.setItemText(0, _translate("MainWindow", "Горизонтальный"))
-        self.comboBox_choose_report_type.setItemText(1, _translate("MainWindow", "Вертикальный"))
+        self.comboBox_choose_report_type.setItemText(
+            0, _translate("MainWindow", "Горизонтальный")
+        )
+        self.comboBox_choose_report_type.setItemText(
+            1, _translate("MainWindow", "Вертикальный")
+        )
         self.pushButton_del_report_source.setText(_translate("MainWindow", "Удалить"))
         self.pushButton_add_report_source.setText(_translate("MainWindow", "Добавить"))
         self.checkBox_request_bhp.setText(_translate("MainWindow", "BHP"))
         self.checkBox_request_thp.setText(_translate("MainWindow", "THP"))
-        self.checkBox_request_time_work.setText(_translate("MainWindow", "Время работы"))
-        self.checkBox_request_cum_time.setText(_translate("MainWindow", "Нак. время работы"))
+        self.checkBox_request_time_work.setText(
+            _translate("MainWindow", "Время работы")
+        )
+        self.checkBox_request_cum_time.setText(
+            _translate("MainWindow", "Нак. время работы")
+        )
         self.label_34.setText(_translate("MainWindow", "Параметры скважин"))
         self.label_21.setText(_translate("MainWindow", "По объектам"))
         self.label_24.setText(_translate("MainWindow", "Группа"))
@@ -710,8 +807,12 @@ class Ui_MainWindow(object):
         self.checkBox__request_pi.setText(_translate("MainWindow", "Продуктивность"))
         self.label_26.setText(_translate("MainWindow", "Анализ"))
         self.label_35.setText(_translate("MainWindow", "Параметры групп"))
-        self.checkBox_request_cum_compensation.setText(_translate("MainWindow", "Накопленная компенсация"))
-        self.checkBox_request_compensation.setText(_translate("MainWindow", "Компенсация"))
+        self.checkBox_request_cum_compensation.setText(
+            _translate("MainWindow", "Накопленная компенсация")
+        )
+        self.checkBox_request_compensation.setText(
+            _translate("MainWindow", "Компенсация")
+        )
         self.label_27.setText(_translate("MainWindow", "Объемные"))
         self.label_28.setText(_translate("MainWindow", "Массовые"))
         self.label_29.setText(_translate("MainWindow", "Пластовые"))
@@ -719,11 +820,15 @@ class Ui_MainWindow(object):
         self.label_31.setText(_translate("MainWindow", "Вода"))
         self.label_32.setText(_translate("MainWindow", "Газ"))
         self.label_33.setText(_translate("MainWindow", "Жидкость"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), _translate("MainWindow", "Выгрузка отчетов"))
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tab_5),
+            _translate("MainWindow", "Выгрузка отчетов"),
+        )
 
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()

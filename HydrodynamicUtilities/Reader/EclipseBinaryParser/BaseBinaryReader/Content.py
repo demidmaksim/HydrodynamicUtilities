@@ -36,7 +36,10 @@ class Content:
             if number_obj > 0 and len(arraydata) > 0:
                 if int(len(arraydata) / number_obj) != 1:
                     dual = (int(len(arraydata) / number_obj), number_obj)
-                    return np.reshape(arraydata, newshape=dual)
+                    try:
+                        return np.reshape(arraydata, newshape=dual)
+                    except ValueError:
+                        return arraydata
                 else:
                     single = number_obj
                     return np.reshape(arraydata, newshape=single)

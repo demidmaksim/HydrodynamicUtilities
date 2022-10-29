@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from .Samples import BaseSamples,  CompositeSample
+    from .Samples import BaseSamples, CompositeSample
 
 import pandas
 import numpy
@@ -21,12 +21,12 @@ class SimpleRPP:
     __phase_white_list = ("wat", "oil", "gas")
 
     def __init__(
-            self,
-            saturation: np.ndarray,
-            phase_permeability: np.ndarray,
-            phase: str,
-            sample: BaseSamples,
-            normalized: bool = False,
+        self,
+        saturation: np.ndarray,
+        phase_permeability: np.ndarray,
+        phase: str,
+        sample: BaseSamples,
+        normalized: bool = False,
     ) -> None:
         self.Saturation = saturation
         self.PhasePermeability = phase_permeability
@@ -43,9 +43,9 @@ class SimpleRPP:
 
 class TwoPhaseRPP:
     def __init__(
-            self,
-            first: SimpleRPP,
-            second: SimpleRPP,
+        self,
+        first: SimpleRPP,
+        second: SimpleRPP,
     ) -> None:
         self.First = first
         self.Second = second

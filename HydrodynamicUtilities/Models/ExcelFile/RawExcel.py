@@ -24,7 +24,13 @@ from ..HistoryData import (
 )
 from ..Time import TimeVector, TimeDelta, TimePoint
 from ..Strategy import ScheduleDataframe, ScheduleSheet, Strategy
-from ..Source.EclipseScheduleNames import BaseKeyWord, ScheduleKeyword, WELLTRACK, FRACTURE_SPECS, COMPDATMD
+from ..Source.EclipseScheduleNames import (
+    BaseKeyWord,
+    ScheduleKeyword,
+    WELLTRACK,
+    FRACTURE_SPECS,
+    COMPDATMD,
+)
 from ..ParamVector import TimeSeries
 from .Converters.DesignPattern import FractureCreator, CompdatmdCreator
 from HydrodynamicUtilities.Models.RockCore.RPP import SimpleRPP, TwoPhaseRPP
@@ -334,15 +340,15 @@ class RawExcelFile:
             df = FractureCreator().get_fracture(self, wsheet)
             sheet = ScheduleSheet(FRACTURE_SPECS)
             sheet.DF = df
-            if not sheet.empty:
+            if not sheet.empty():
                 sdf = sdf + sheet
 
         if "FilterBinding" in self:
-            wsheet = sdf[WELLTRACK.__name__]
+            wsheet = getattr(sdf, WELLTRACK.__name__)
             df = CompdatmdCreator().get_compdatmd(self, wsheet)
             sheet = ScheduleSheet(FRACTURE_SPECS)
             sheet.DF = df
-            if not sheet.empty:
+            if not sheet.empty():
                 sdf = sdf + sheet
 
         if sdf.empty():

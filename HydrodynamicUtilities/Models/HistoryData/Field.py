@@ -159,7 +159,7 @@ class FieldHistory:
 
         for well in self.WellData.values():
             t = well.get_events()
-            t = t[(t > fsr.min) & (t<fsr.max)]
+            t = t[(t > fsr.min) & (t < fsr.max)]
             fsr.extend(t)
 
         fsr.unique(in_place=True)

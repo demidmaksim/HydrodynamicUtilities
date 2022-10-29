@@ -14,10 +14,10 @@ from abc import abstractmethod
 
 class BaseSamples:
     def __init__(
-            self,
-            name: str,
-            perm: Union[float, int],
-            poro: Union[float, int],
+        self,
+        name: str,
+        perm: Union[float, int],
+        poro: Union[float, int],
     ) -> None:
         self.Name = name
         self.Perm = perm
@@ -26,22 +26,21 @@ class BaseSamples:
     def __repr__(self) -> str:
         return self.Name
 
+
 class SingleSample(BaseSamples):
     def __init__(
-            self, name: str,
-            perm: Union[float, int],
-            poro: Union[float, int]
+        self, name: str, perm: Union[float, int], poro: Union[float, int]
     ) -> None:
         super().__init__(name, perm, poro)
 
 
 class CompositeSample(BaseSamples):
     def __init__(
-            self,
-            name: str,
-            perm: Union[float, int],
-            poro: Union[float, int],
-            elements: Optional[List[SingleSample]] = None,
+        self,
+        name: str,
+        perm: Union[float, int],
+        poro: Union[float, int],
+        elements: Optional[List[SingleSample]] = None,
     ) -> None:
         super().__init__(name, perm, poro)
 

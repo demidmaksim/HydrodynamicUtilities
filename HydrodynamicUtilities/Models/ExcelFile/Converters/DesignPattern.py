@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..RawExcel import RawExcelFile
-    from typing import Optional, List
+    from typing import Optional, List, Dict, Union
 
 from ...Strategy import ScheduleDataframe, ScheduleSheet, Strategy
 from ...Source.EclipseScheduleNames import FRACTURE_SPECS, WELSPECS, WELLTRACK
@@ -154,15 +154,55 @@ class CompdatmdCreator:
         return df.rename(columns=df.iloc[0]).drop(df.index[0])
 
     @staticmethod
-    def convert_binding(df: pd.DataFrame) -> pd.DataFrame:
+    def convert_binding(
+        df: pd.DataFrame,
+    ) -> Dict[Union[str, int], Dict[Union[str, int], str]]:
+        df = df.dropna(how="all")
+        well = df.iloc[2:, 0].values
+        all_bore = df.iloc[1, 1:].values
+        data = df.iloc[2:, 1:]
+        results = dict()
+        for wnid, wname in enumerate(well):
+            results[wname] = dict()
+            for bnid, bname in enumerate(all_bore):
+                patern = data.iloc[wnid, bnid]
+                if not pd.isna(patern):
+                    results[wname][bnid] = patern
+        return results
 
-        return df
+    def get_start_time(
+        self,
+        welspec: Optional[pd.DataFrame],
+        wname: str,
+    ) -> np.datetime64:
+        if welspec is None:
+            return np.datetime64("nat")
 
-    def get_compdatmd(self, file: RawExcelFile, wt_ss: ScheduleSheet) -> ScheduleSheet:
+        welspec = welspec[welspec[WELSPECS.WellName].astype(str) == wname]
+        if not welspec.empty:
+            return np.datetime64(welspec["Time"].iloc[0])
+        else:
+            return np.datetime64("nat")
+
+    def get_min_max_md(self):
+        pass
+
+    def get_compdatmd(
+        self, file: RawExcelFile, ws_ss: ScheduleSheet, wt_ss: Optional[ScheduleSheet]
+    ) -> ScheduleSheet:
         try:
-            binding = self.convert_binding(file["FrackBinding"].DF)
+            binding = self.convert_binding(file["FilterBinding"].DF)
             pattern = self.convert_sheet(file["FilterPattern"].DF)
         except KeyError:
             return ScheduleSheet(FRACTURE_SPECS)
+
+        results = pd.DataFrame()
+
+        for wname, bore_patterns in binding.items():
+            start_time = self.get_start_time(ws_ss.DF, wname)
+            for bore, bp in binding.items():
+                start_md, end_md = 1, 1
+                p = pattern[pattern["Имя Шаблона"] == bp]
+                p["Time"] = start_time
 
         pass
