@@ -252,9 +252,20 @@ if __name__ == "__main__":
     # INIT = read(folder / "result.INSPEC")
     # UNRST = read(folder / "History_to_2022_08_01_RPP12.UNRST")
 
-    PORO, clay = np.meshgrid(np.arange(0.05, 0.32, 0.01), np.arange(0, 1, 0.02))
-    PORO = np.resize(PORO, (27 * 50,))
-    clay = np.resize(clay, (27 * 50,))
+    PORO, clay, soil, swat, sgas = np.meshgrid(
+        np.arange(0.05, 0.32, 0.01),
+        np.arange(0, 1, 0.02),
+        np.arange(0, 1, 0.1),
+        np.arange(0, 1, 0.1),
+        np.arange(0, 1, 0.1),
+    )
+
+    PORO = np.resize(PORO, (27 * 50 * 10 * 10 * 10))
+    clay = np.resize(clay, (27 * 50 * 10 * 10 * 10))
+    soil = np.resize(soil, (27 * 50 * 10 * 10 * 10))
+    swat = np.resize(swat, (27 * 50 * 10 * 10 * 10))
+    sgas = np.resize(sgas, (27 * 50 * 10 * 10 * 10))
+
     ARRDK = 0.5 + 2 * clay
     ARRPERM = 555 * PORO ** 2 * (1 - clay) ** 4.3
     PERMX = ARRPERM * np.exp(0.5 * ARRDK ** 2)
@@ -288,9 +299,9 @@ if __name__ == "__main__":
     # results2 = Baker2(ow, og).get_oil_rpp(Swat2, Sgas2, SOWCR, SOGCR)
     fodler = Path(r"C:\Users\demid\Desktop")
 
-    model_clay = convert_to_data_file(read(fodler / "CLAY.GRDECL"), active_sections = "GRID").GRID.Cubs.ARRCLAY.Data
-    model_poro = convert_to_data_file(read(fodler / "PORO.GRDECL"), active_sections = "GRID").GRID.Cubs.PORO.Data
-    pattrn = (model_clay != 0) & (model_poro != 0)
+    # model_clay = convert_to_data_file(read(fodler / "CLAY.GRDECL"), active_sections = "GRID").GRID.Cubs.ARRCLAY.Data
+    # model_poro = convert_to_data_file(read(fodler / "PORO.GRDECL"), active_sections = "GRID").GRID.Cubs.PORO.Data
+    # pattrn = (model_clay != 0) & (model_poro != 0)
     fig = make_subplots(
         rows=2, cols=2,
         column_widths=[0.6, 0.4],
@@ -305,15 +316,9 @@ if __name__ == "__main__":
             y=clay,
             z=PERMX,
             contours={
-                "start": 1,
+                "start": 0.1,
                 "end": 40,
-                "size": 5,
-                # "type": "log",
-                "coloring": 'lines',
-                #'size': [0.28, 0.22, 0.15, 0.1, 0.07, 0.06, 0.05, 0.04, 0.03],
-                "showlabels": True,
-
-
+                "size": 5
             },
             xaxis="x",
             yaxis="y"
@@ -321,17 +326,7 @@ if __name__ == "__main__":
         row=2,
         col=1,
     )
-
-    fig.add_trace(
-        go.Scatter(
-            x=model_poro[np.arange(0, len(model_poro), 1000)],
-            y=model_clay[np.arange(0, len(model_poro), 1000)],
-            mode='markers'
-        ),
-        row=2,
-        col=1,
-    )
-
+    """
     fig.add_trace(
         go.Histogram(
             x=model_poro[pattrn],
@@ -341,7 +336,7 @@ if __name__ == "__main__":
         row=1,
         col=1,
     )
-
+    
     fig.add_trace(
         go.Histogram(
             y=model_clay[pattrn],
@@ -357,7 +352,7 @@ if __name__ == "__main__":
 
     # fig.update_xaxes(row=1, col=1, matches='x1')
     fig.update_yaxes(matches='y2', row=2, col=2, )
-
+    """
 
     fig.show()
     pass
