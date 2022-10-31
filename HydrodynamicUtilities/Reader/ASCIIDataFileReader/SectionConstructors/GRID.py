@@ -44,6 +44,7 @@ class CubsConstructor(BaseKeywordCreator):
         famous_keyword = GRID.Cubs.get_famous_keyword()
         keyword_class: Type[GRID.CubeProperty] = famous_keyword[kw]
         return keyword_class(cubs)
+        # return GRID.CubeProperty(np.array([1,3]))
 
 
 class MeshConstructor(BaseKeywordCreator):
@@ -61,6 +62,7 @@ class MeshConstructor(BaseKeywordCreator):
 
 class GRIDConstructor(BaseKeywordCreator):
     def create(self, data: str, data_file: DataFile) -> Keyword:
+
         adata = ASCIIText(data)
 
         kw = str(adata.get_keyword())

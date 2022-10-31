@@ -98,11 +98,13 @@ class ASCIIFilesIndexer:
             self._Data = file.read().upper()
 
     def _keyword_indexing(self) -> pd.DataFrame:
+        """
         data = re.subn(r"\d", "", self._Data, flags=re.ASCII)[0].upper()
         data = re.subn(r"--.*\n", "", data, flags=re.ASCII)[0]
         data = re.subn(r"\s", "", data, flags=re.ASCII)[0]
         data = re.subn(r"[.]", "", data, flags=re.ASCII)[0]
         data = re.subn(r"[*]", "", data, flags=re.ASCII)[0]
+        """
 
         results = []
         keyword = []
@@ -116,9 +118,28 @@ class ASCIIFilesIndexer:
                 results.append(0)
                 keyword.append(f_line[:8])
 
+        target = re.finditer(f"\n\s*[a-zA-Z]\w*\s", self._Data)
+        for find in target:
+            start = find.regs[0][0]
+            end = find.regs[0][1]
+            kword = self._Data[start: end].strip()
+            if kword in all_keyword:
+                results.append(start)
+                keyword.append(kword)
+
+        target = re.finditer(f"\n\s*ARR\w+\s", self._Data)
+        for find in target:
+            start = find.regs[0][0]
+            end = find.regs[0][1]
+            kword = self._Data[start: end].strip()
+            if kword in all_keyword:
+                results.append(start)
+                keyword.append(kword)
+
+        """
         for kword in all_keyword:
             if kword in data:
-                target = re.finditer(f"\n\s*{kword}\s", self._Data)
+                target = re.finditer(f"\n\s*\S*\s", self._Data)
                 kw_index = [x.regs[0][0] for x in target]
                 results.extend(kw_index)
                 keyword.extend([kword] * len(kw_index))
@@ -129,6 +150,7 @@ class ASCIIFilesIndexer:
                 kw_index = [x.regs[0][0] for x in target]
                 results.extend(kw_index)
                 keyword.extend([kword] * len(kw_index))
+        """
 
         df = pd.DataFrame()
         df["ind"] = results
@@ -214,9 +236,10 @@ class ASCIIRow:
 class ASCIIText:
     def __init__(self, text: str) -> None:
         tt = text
+
         text = re.subn(r"--.*\n", "\n", text, flags=re.ASCII)[0]
-        text = re.subn(r"\n{2,}", "\n", text, flags=re.ASCII)[0]
-        text = re.subn(r"\n\s*\n", "\n", text, flags=re.ASCII)[0]
+        # text = re.subn(r"\n{2,}", "\n", text, flags=re.ASCII)[0]
+        # text = re.subn(r"\n\s*\n", "\n", text, flags=re.ASCII)[0]
         text = re.subn(r"/\s*\n", "/\n", text, flags=re.ASCII)[0]
 
         text = text.strip()
@@ -235,11 +258,13 @@ class ASCIIText:
             return False
 
     def get_keyword(self, pop: bool = False) -> ASCIIRow:
-
-        if self.Text.split("\n")[0] in all_keyword:
-            kw = self.Text.split("\n")[0].strip()
-        elif self.Text.split()[0] in all_keyword:
-            kw = self.Text.split()[0]
+        # TODO
+        if self.Text[:self.Text.index("\n")].strip() in all_keyword:
+            kw = self.Text[:self.Text.index("\n")].strip()
+        elif self.Text[:self.Text.index(" ")].strip() in all_keyword:
+            kw = self.Text[:self.Text.index(" ")].strip()
+        elif self.Text[:self.Text.index("\t")].strip() in all_keyword:
+            kw = self.Text[:self.Text.index("\t")].strip()
         elif self.Text[:8].strip() in all_keyword:
             kw = self.Text[:8].strip()
         elif self.Text[:3].strip() in "ARR":
@@ -312,6 +337,7 @@ class ASCIIText:
                 results.append(word)
 
         return ASCIIText(" ".join(results))
+        # return self
 
     def to_slash(self, pop: bool = False, end_slash: bool = False) -> ASCIIText:
         if end_slash:
