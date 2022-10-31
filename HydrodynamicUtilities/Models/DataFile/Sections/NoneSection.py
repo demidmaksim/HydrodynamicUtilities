@@ -45,7 +45,7 @@ class NoneSection(Section):
 
         for section in list_for_iter:
             try:
-                kyword = section.Keyword[name]
+                kyword = section.get_famous_keywords()[name]
                 break
             except KeyError:
                 pass

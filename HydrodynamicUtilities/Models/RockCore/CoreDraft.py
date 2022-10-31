@@ -231,9 +231,8 @@ class Baker2:
 
 
 class RegionsRPP:
-    def __init__(self, data: Dict[int: Baker2]) -> None:
+    def __init__(self, data: Dict[int:Baker2]) -> None:
         self.Data = data
-
 
 
 if __name__ == "__main__":

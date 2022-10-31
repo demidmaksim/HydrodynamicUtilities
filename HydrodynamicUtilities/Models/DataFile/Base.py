@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import Callable, Type, Any, List, Dict
+    from typing import Type, Any, List, Dict
     from HydrodynamicUtilities.Models.DataFile import DataFile
 
 import abc
@@ -13,7 +13,7 @@ from copy import deepcopy
 
 
 class Section:
-    __Keyword = dict()
+    __Keyword: Type[Keyword] = dict()
     __AllKeyword = all_keyword
 
     def __init__(self, data_file: DataFile) -> None:
@@ -22,53 +22,72 @@ class Section:
     def __repr__(self) -> str:
         return self.__class__.__name__
 
-    def get_data_file(self) -> DataFile:
-        return self.__DataFile
-
     def __setattr__(self, key, value) -> None:
         if isinstance(value, str):
             super().__setattr__(key, ASCIIText(value))
+        elif isinstance(value, Keyword):
+            value.ParentSection = self
+            super().__setattr__(key, value)
         else:
             super().__setattr__(key, value)
 
-    @abc.abstractmethod
-    def get_start_date(self) -> Type[BaseKeywordCreator]:
-        return BaseKeywordCreator
-
-    @classmethod
-    def get_constructor(cls) -> Type[BaseKeywordCreator]:
-        return BaseKeywordCreator
-
-
-class BaseKeywordCreator:
-    @staticmethod
-    def create_arithmetic(data: str) -> ARITHMETIC:
-        results = []
-        for row in data.split("\n"):
-            if "/" not in row:
-                row = str(ASCIIText(row))
-                results.append(ArithmeticExpression(row))
-        return ARITHMETIC(results)
-
-    def create(self, data: str, data_file: DataFile) -> Keyword:
-        adata = ASCIIText(data)
-        kw = adata.get_keyword(True)
-        if str(kw) == ARITHMETIC.__name__:
-            return self.create_arithmetic(str(adata))
+    def set_keyword(self, data: Keyword) -> None:
+        if isinstance(data, ARITHMETIC):
+            pass
+        elif isinstance(data, Keyword):
+            self.__setattr__(data.__repr__(), data)
         else:
-            return UnknownKeyword(str(kw), str(adata))
+            pass
 
-    def choose_fun(self, kw: str) -> Callable:
-        return self.__getattribute__(kw.lower())
+    def get_data_file(self) -> DataFile:
+        return self.__DataFile
+
+    @abc.abstractmethod
+    def get_famous_keyword(self) -> Dict[str, Type[Keyword]]:
+        pass
+
+    def set_collected_keyword(self, name: str, **kwargs: Dict[str, Any]) -> None:
+        value = self.get_famous_keyword()[name]
+        kw = value(**kwargs)
+        self.__setattr__(name, kw)
+
+
+class UnInitializedSection(Section):
+    def __init__(self, data_file: DataFile) -> None:
+        super().__init__(data_file)
+        self.Order = []
+
+    def __setattr__(self, key: str, value: Any) -> None:
+        if key not in self.__dict__.keys() and isinstance(value, Keyword):
+            super().__setattr__(key, [value])
+            self.Order.append(value)
+        elif not isinstance(value, Keyword):
+            super().__setattr__(key, value)
+        else:
+            value_list = self.__getattribute__(key)
+            value_list.append(value)
+            self.Order.append(value)
+
+    def __repr__(self) -> str:
+        data = self.__class__.__name__
+        return data.split("UnInitialized")[1]
+
+    @abc.abstractmethod
+    def get_famous_keyword(self) -> Dict[str, Type[Keyword]]:
+        pass
 
 
 class Keyword:
+    def __init__(self, section: Section = None, **kwargs) -> None:
+        self.ParentSection = section
+
     def __repr__(self) -> str:
         return self.__class__.__name__
 
 
 class UnknownKeyword(Keyword):
-    def __init__(self, name: str, data: str) -> None:
+    def __init__(self, name: str, data: str, **kwargs) -> None:
+        super().__init__(**kwargs)
         self.Data = data
         self.Name = name
 
@@ -76,21 +95,9 @@ class UnknownKeyword(Keyword):
         return self.Name
 
 
-class RowEntry:
-    __Order: Dict[str, Any] = {}
-
-    @classmethod
-    @abc.abstractmethod
-    def get_base_value(cls) -> Dict[str, Any]:
-        pass
-
-
-class OneRowKeyword(Keyword):
-    pass
-
-
 class ArithmeticExpression(Keyword):
-    def __init__(self, string: str) -> None:
+    def __init__(self, string: str, **kwargs) -> None:
+        super().__init__(**kwargs)
         self.Value = string
         self.Order = None
 
@@ -99,7 +106,8 @@ class ArithmeticExpression(Keyword):
 
 
 class ARITHMETIC(Keyword):
-    def __init__(self, calc: List[ArithmeticExpression]):
+    def __init__(self, calc: List[ArithmeticExpression], **kwargs):
+        super().__init__(**kwargs)
         self.__Calculations = calc
 
     @property

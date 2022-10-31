@@ -96,8 +96,8 @@ def to_init(row_data: RowBinaryData, row_inspec: RowBinaryData) -> INIT:
 
 
 def to_unrst_rsspec(
-        row_unrst: RowBinaryData,
-        row_rsspec: RowBinaryData,
+    row_unrst: RowBinaryData,
+    row_rsspec: RowBinaryData,
 ) -> UNRSTRSSPEC:
     unrst = Convertor.to_as_it_is(row_unrst)
     rsspec = Convertor.to_as_it_is(row_rsspec)

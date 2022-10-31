@@ -133,6 +133,7 @@ class ASCIIFilesIndexer:
         df = pd.DataFrame()
         df["ind"] = results
         df["kwd"] = keyword
+        df = df.sort_values(by="ind", ignore_index=True)
         return df
 
     def _clean_arithmetic(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -141,12 +142,14 @@ class ASCIIFilesIndexer:
         if arr_df.empty:
             return df
 
+        # for_del = np.zeros(df.shape).astype(bool)
+
         for rid, row in arr_df.iterrows():
             ind = row["ind"]
             slash_iter = re.finditer(f"/\s*\n", self._Data[ind:])
             slash_ind = slash_iter.__next__().regs[0][0] + ind
-            next_kw = df["ind"].iloc[rid + 1]
-            if next_kw > slash_ind:
+            next_kw = df["ind"].loc[rid + 1]
+            if next_kw < slash_ind:
                 pattern = (df["ind"] > ind) & (df["ind"] < slash_ind)
                 df = df[~pattern]
         return df

@@ -18,9 +18,9 @@ from copy import deepcopy
 
 class UNRSTRSSPEC(EclipseBinaryData):
     def __init__(
-            self,
-            unrst: Optional[EclipseBinaryData],
-            rsspec: Optional[EclipseBinaryData],
+        self,
+        unrst: Optional[EclipseBinaryData],
+        rsspec: Optional[EclipseBinaryData],
     ) -> None:
         self.UNRST = unrst
         self.RSSPEC = rsspec

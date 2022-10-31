@@ -18,9 +18,9 @@ from copy import deepcopy
 
 class INIT(EclipseBinaryData):
     def __init__(
-            self,
-            data: Optional[EclipseBinaryData],
-            inspec: Optional[EclipseBinaryData],
+        self,
+        data: Optional[EclipseBinaryData],
+        inspec: Optional[EclipseBinaryData],
     ) -> None:
         self.Data = data
         self.INSPEC = inspec

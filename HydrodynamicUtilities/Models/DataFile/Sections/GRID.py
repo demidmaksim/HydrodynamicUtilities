@@ -3,16 +3,19 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..Base import DataFile, Type, Dict, Tuple, Union
+    from ..Base import DataFile
+    from typing import Type, Dict, Tuple, Union, Optional, Any
+    from .RUNSPEC import DIMENS
 
 import numpy as np
 
-from ..Base import Section, Keyword, BaseKeywordCreator, UnknownKeyword
+from ..Base import Section, UnInitializedSection, Keyword, UnknownKeyword
 from ..ASCIIFile import ASCIIText
 
 
 class CubeProperty(Keyword):
-    def __init__(self, data: np.ndarray) -> None:
+    def __init__(self, data: np.ndarray, **kwargs) -> None:
+        super().__init__(**kwargs)
         self.Data = data
 
     def __add__(
@@ -249,51 +252,77 @@ class INIT(Keyword):
 
 
 class COORD(Keyword):
-    def __init__(self, data: np.ndarray) -> None:
+    def __init__(self, data: np.ndarray, **kwargs) -> None:
+        super().__init__(**kwargs)
         self.Data = data
 
 
 class FILHEAD(Keyword):
-    def __init__(self, data: np.ndarray) -> None:
+    def __init__(self, data: np.ndarray, **kwargs) -> None:
+        super().__init__(**kwargs)
         self.Data = data
 
 
 class GRIDHEAD(Keyword):
-    def __init__(self, data: np.ndarray) -> None:
+    def __init__(self, data: np.ndarray, **kwargs) -> None:
+        super().__init__(**kwargs)
         self.Data = data
 
 
 class GRIDUNIT(Keyword):
-    def __init__(self, data: np.ndarray) -> None:
+    def __init__(self, data: np.ndarray, **kwargs) -> None:
+        super().__init__(**kwargs)
         self.Data = data
 
 
 class MAPAXES(Keyword):
-    def __init__(self, data: np.ndarray) -> None:
+    def __init__(self, data: np.ndarray, **kwargs) -> None:
+        super().__init__(**kwargs)
         self.Data = data
 
 
 class MAPUNIT(Keyword):
-    def __init__(self, data: np.ndarray) -> None:
+    def __init__(self, data: np.ndarray, **kwargs) -> None:
+        super().__init__(**kwargs)
         self.Data = data
 
 
 class ZCORN(Keyword):
-    def __init__(self, data: np.ndarray) -> None:
+    def __init__(self, data: np.ndarray, **kwargs) -> None:
+        super().__init__(**kwargs)
         self.Data = data
 
 
 class Mesh:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, section: GRID) -> None:
+        self.Section = section
+
+    def __setattr__(self, key, value) -> None:
+        if isinstance(value, str):
+            super().__setattr__(key, ASCIIText(value))
+        elif isinstance(value, Keyword):
+            value.ParentSection = self
+            super().__setattr__(key, value)
+        else:
+            super().__setattr__(key, value)
 
 
 class Cubs:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, section: GRID) -> None:
+        self.__Section = section
 
     def __repr__(self) -> str:
         return self.__class__.__name__
+
+    def __setattr__(self, key, value) -> None:
+        if isinstance(value, CubeProperty):
+            value.ParentSection = self.__Section
+            super().__setattr__(key, value)
+        else:
+            super().__setattr__(key, value)
+
+    def get_section(self) -> Section:
+        return self.__Section
 
     @classmethod
     def get_famous_keyword(cls) -> Dict[str, Type[CubeProperty]]:
@@ -311,84 +340,31 @@ class Cubs:
 
 
 class Setting:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, section: GRID) -> None:
+        self.Section = section
+
+    def __setattr__(self, key, value) -> None:
+        if isinstance(value, str):
+            super().__setattr__(key, ASCIIText(value))
+        elif isinstance(value, Keyword):
+            value.ParentSection = self
+            super().__setattr__(key, value)
+        else:
+            super().__setattr__(key, value)
 
 
 class Other:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, section: GRID) -> None:
+        self.Section = section
 
-
-class SettingConstructor(BaseKeywordCreator):
-    def init(self, data: str) -> INIT:
-        return INIT()
-
-    def create(self, data: str, data_file: DataFile) -> Keyword:
-        adata = ASCIIText(data)
-
-        kw = adata.get_keyword(True)
-
-        if str(kw) not in GRID.get_famous_keyword().keys():
-            return UnknownKeyword(str(kw), str(adata))
-
-        adata = adata.replace_multiplication()
-        fun = self.choose_fun(str(kw))
-        return fun(adata)
-
-
-class CubsConstructor(BaseKeywordCreator):
-    def create_arrcube(self, data: str) -> ARRCube:
-        adata = ASCIIText(data)
-
-        kw = str(adata.get_keyword(True))
-        adata = adata.replace_multiplication()
-        adata = adata.to_slash()
-        cubs = np.array(adata.split(), dtype=float)
-        return ARRCube(cubs, kw)
-
-    def create(self, data: str, data_file: DataFile) -> CubeProperty:
-        adata = ASCIIText(data)
-
-        kw = str(adata.get_keyword(True))
-        adata = adata.replace_multiplication()
-        adata = adata.to_slash()
-        cubs = np.array(adata.split(), dtype=float)
-        famous_keyword = Cubs.get_famous_keyword()
-        keyword_class: Type[CubeProperty] = famous_keyword[kw]
-        return keyword_class(cubs)
-
-
-class MeshConstructor(BaseKeywordCreator):
-    def create(self, data: str, data_file: DataFile) -> Keyword:
-        adata = ASCIIText(data)
-
-        kw = str(adata.get_keyword(True))
-        adata = adata.replace_multiplication()
-        adata = adata.to_slash()
-        cubs = np.array(adata.split(), dtype=float)
-        famous_keyword = GRID.get_famous_keyword()
-        keyword_class: Type[CubeProperty] = famous_keyword[kw]
-        return keyword_class(cubs)
-
-
-class GRIDConstructor(BaseKeywordCreator):
-    def create(self, data: str, data_file: DataFile) -> Keyword:
-        adata = ASCIIText(data)
-
-        kw = str(adata.get_keyword())
-
-        if str(kw) in GRID.get_mesh_keyword():
-            return MeshConstructor().create(str(adata), data_file)
-        elif str(kw) in GRID.get_cubs_keyword():
-            return CubsConstructor().create(str(adata), data_file)
-        elif "ARR" == str(kw)[:3]:
-            return CubsConstructor().create_arrcube(str(adata))
-        elif str(kw) not in GRID.get_famous_keyword().keys():
-            kw = adata.get_keyword(True)
-            return UnknownKeyword(str(kw), str(adata))
+    def __setattr__(self, key, value) -> None:
+        if isinstance(value, str):
+            super().__setattr__(key, ASCIIText(value))
+        elif isinstance(value, Keyword):
+            value.ParentSection = self
+            super().__setattr__(key, value)
         else:
-            return SettingConstructor().create(str(adata), data_file)
+            super().__setattr__(key, value)
 
 
 class GRID(Section):
@@ -427,10 +403,10 @@ class GRID(Section):
 
     def __init__(self, data_file: DataFile) -> None:
         super().__init__(data_file)
-        self.Grid = Mesh()
-        self.Cubs = Cubs()
-        self.Setting = Setting()
-        self.Other = Other()
+        self.Grid = Mesh(self)
+        self.Cubs = Cubs(self)
+        self.Setting = Setting(self)
+        self.Other = Other(self)
 
     def __setattr__(self, key, value) -> None:
         if isinstance(value, Keyword):
@@ -451,11 +427,7 @@ class GRID(Section):
             super().__setattr__(key, value)
 
     @classmethod
-    def get_constructor(cls) -> Type[BaseKeywordCreator]:
-        return GRIDConstructor
-
-    @classmethod
-    def get_famous_keyword(cls) -> Dict[str, Type[CubeProperty]]:
+    def get_famous_keyword(cls) -> Dict[str, Type[Keyword]]:
         return cls.__Keyword
 
     @classmethod
@@ -469,3 +441,80 @@ class GRID(Section):
     @classmethod
     def get_cubs_keyword(cls) -> Tuple[str, ...]:
         return cls.__Cubs
+
+    def __for_index(self) -> Optional[Tuple[DIMENS, CubeProperty]]:
+        datafile = self.get_data_file()
+        try:
+            dimens = datafile.RUNSPEC.DIMENS
+        except AttributeError:
+            return None
+
+        try:
+            kw_name = list(self.Cubs.__dict__.keys())[0]
+            kw: CubeProperty = getattr(self.Cubs, kw_name)
+        except AttributeError:
+            return None
+        return dimens, kw
+
+    def get_k_index(self) -> Optional[CubeProperty]:
+        dc = self.__for_index()
+        if dc is None:
+            return None
+
+        dimens, kw = dc[0], dc[1]
+
+        index = np.arange(len(kw.Data))
+        k_index = index // (dimens.NX * dimens.NY) + 1
+        return CubeProperty(k_index, section=self)
+
+    def get_j_index(self) -> Optional[CubeProperty]:
+        dc = self.__for_index()
+        if dc is None:
+            return None
+
+        dimens, kw = dc[0], dc[1]
+
+        index = np.arange(len(kw.Data))
+        k_index = index // (dimens.NX * dimens.NY) + 1
+        layer_index = (k_index - 1) * dimens.NX * dimens.NY
+        j_index = layer_index // dimens.NX
+        return CubeProperty(j_index, section=self)
+
+    def get_i_index(self) -> Optional[CubeProperty]:
+        dc = self.__for_index()
+        if dc is None:
+            return None
+
+        dimens, kw = dc[0], dc[1]
+
+        index = np.arange(len(kw.Data))
+        k_index = index // (dimens.NX * dimens.NY) + 1
+        layer_index = (k_index - 1) * dimens.NX * dimens.NY
+        i_index = layer_index % dimens.NX
+        return CubeProperty(i_index, section=self)
+
+    def get_i_j_k_index(
+        self,
+    ) -> Optional[Tuple[CubeProperty, CubeProperty, CubeProperty]]:
+        dc = self.__for_index()
+        if dc is None:
+            return None
+
+        dimens, kw = dc[0], dc[1]
+
+        index = np.arange(len(kw.Data))
+        k_index = index // (dimens.NX * dimens.NY) + 1
+        layer_index = (k_index - 1) * dimens.NX * dimens.NY
+        j_index = layer_index // dimens.NX
+        i_index = layer_index % dimens.NX
+
+        i = CubeProperty(i_index, section=self)
+        j = CubeProperty(j_index, section=self)
+        k = CubeProperty(k_index, section=self)
+        return i, j, k
+
+
+class UnInitializedGRID(UnInitializedSection):
+    @staticmethod
+    def get_famous_keyword() -> Dict[str, Type[Keyword]]:
+        return GRID.get_famous_keyword()

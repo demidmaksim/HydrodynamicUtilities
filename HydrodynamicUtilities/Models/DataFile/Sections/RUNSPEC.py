@@ -4,13 +4,10 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from typing import Optional, Dict, Union, Type, Any
-    from ..DataFile import DataFile
 
-from ..Base import Section, Keyword, BaseKeywordCreator, UnknownKeyword
+from ..Base import Section, UnInitializedSection, Keyword
 from ...Time.Point import TimePoint
 from datetime import datetime
-from ..ASCIIFile import ASCIIText
-from copy import deepcopy
 
 
 class VAPOIL(Keyword):
@@ -50,7 +47,9 @@ class START(Keyword):
         day: str = 1,
         month: str = "JAN",
         years: str = 1900,
+        **kwargs,
     ) -> None:
+        super().__init__(**kwargs)
         self.DAY = day
         self.MONTH = month
         self.YEARS = years
@@ -73,13 +72,37 @@ class DIMENS(Keyword):
 
     def __init__(
         self,
-        nx: int = None,
-        ny: int = None,
-        nz: int = None,
+        nx: int,
+        ny: int,
+        nz: int,
+        **kwargs,
     ) -> None:
+        super().__init__(**kwargs)
         self.NX = nx
         self.NY = ny
         self.NZ = nz
+
+    def get_statistic(self) -> str:
+        total_cells = self.NX * self.NY * self.NZ
+        try:
+            datafile = self.ParentSection.get_data_file()
+            actnnum_cell = datafile.GRID.Cubs.ACTNUM.Data.sum()
+        except AttributeError:
+            actnnum_cell = self.NX * self.NY * self.NZ
+
+        share = actnnum_cell / total_cells * 100
+
+        results = (
+            f"NX: {self.NX}\n"
+            f"NY: {self.NY}\n"
+            f"NZ: {self.NZ}\n"
+            f"Total cells: {total_cells}\n"
+            f"Active cell: {actnnum_cell} ({round(share, 2)}%)\n"
+        )
+        return results
+
+    def get_total_cells(self) -> int:
+        return self.NX * self.NY * self.NZ
 
     @classmethod
     def get_base_value(cls) -> Dict[str, Any]:
@@ -125,7 +148,9 @@ class TABDIMS(Keyword):
         pressure_regions: int = None,
         max_temperature_number: int = None,
         transport_regions: int = None,
+        **kwargs,
     ) -> None:
+        super().__init__(**kwargs)
         self.SATNUM: int = satnum
         self.PVTNUM: int = pvtnum
         self.MaxRPPTable: int = max_rpp_table
@@ -172,7 +197,12 @@ class DEFINESEntry:
 
 
 class DEFINES(Keyword):
-    def __init__(self, data: Dict[str, Union[str, float, int]] = None) -> None:
+    def __init__(
+        self,
+        data: Dict[str, Union[str, float, int]] = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(**kwargs)
         if data is not None:
             self.Data = data
         else:
@@ -180,95 +210,6 @@ class DEFINES(Keyword):
 
     def append(self, data: DEFINESEntry) -> None:
         self.Data[data.Name] = data
-
-
-class RunspecKeywordCreator(BaseKeywordCreator):
-    def defines(self, data: ASCIIText) -> DEFINES:
-        results = DEFINES()
-        while not data.empty():
-            row = data.to_slash(True, True)
-            if row.empty():
-                break
-
-            list_row = row.split()
-
-            name = list_row[0]
-            value = list_row[1]
-
-            try:
-                min_value = list_row[2]
-            except IndexError:
-                min_value = None
-
-            try:
-                max_value = list_row[3]
-            except IndexError:
-                max_value = None
-
-            try:
-                var_type = list_row[4]
-            except IndexError:
-                var_type = None
-
-            entry = DEFINESEntry(results, name, value, min_value, max_value, var_type)
-            results.append(entry)
-        return results
-
-    def tabdims(self, data: ASCIIText) -> TABDIMS:
-        data = data.replace_multiplication()
-        sdata = data.to_slash()
-        results = deepcopy(TABDIMS.get_base_value())
-        for pid, pos in enumerate(sdata.split()):
-            kw = list(TABDIMS.get_base_value().keys())[pid]
-            results[kw] = pos
-        return TABDIMS(**results)
-
-    def vapoil(self, data: ASCIIText) -> VAPOIL:
-        return VAPOIL()
-
-    def disgas(self, data: ASCIIText) -> DISGAS:
-        return DISGAS()
-
-    def water(self, data: ASCIIText) -> WATER:
-        return WATER()
-
-    def oil(self, data: ASCIIText) -> OIL:
-        return OIL()
-
-    def gas(self, data: ASCIIText) -> GAS:
-        return GAS()
-
-    def start(self, data: ASCIIText) -> START:
-        data = data.replace_multiplication()
-        sdata = data.to_slash()
-        results = deepcopy(START.get_base_value())
-        for pid, pos in enumerate(sdata.split()):
-            kw = list(START.get_base_value().keys())[pid]
-            results[kw] = pos
-        return START(**results)
-
-    def metric(self, data: ASCIIText) -> METRIC:
-        return METRIC()
-
-    def dimens(self, data: ASCIIText) -> DIMENS:
-        data = data.replace_multiplication()
-        sdata = data.to_slash()
-        results = deepcopy(DIMENS.get_base_value())
-        for pid, pos in enumerate(sdata.split()):
-            kw = list(DIMENS.get_base_value().keys())[pid]
-            results[kw] = pos
-        return DIMENS(**results)
-
-    def create(self, data: str, data_file: DataFile) -> Keyword:
-        adata = ASCIIText(data)
-
-        kw = adata.get_keyword(True)
-
-        if str(kw) not in RUNSPEC.get_famous_keyword().keys():
-            return UnknownKeyword(str(kw), str(adata))
-
-        fun = self.choose_fun(str(kw))
-        return fun(adata)
 
 
 class RUNSPEC(Section):
@@ -291,10 +232,6 @@ class RUNSPEC(Section):
     def get_famous_keyword(cls) -> Dict[str, Type[Keyword]]:
         return cls.__Keyword
 
-    @classmethod
-    def get_constructor(cls) -> Type[BaseKeywordCreator]:
-        return RunspecKeywordCreator
-
     def get_start_date(self) -> Optional[TimePoint]:
         try:
             stat: START = getattr(self, "START")
@@ -303,3 +240,10 @@ class RUNSPEC(Section):
             return TimePoint(date)
         except AttributeError:
             return None
+
+
+class UnInitializedRUNSPEC(UnInitializedSection):
+    
+    @classmethod
+    def get_famous_keyword(cls) -> Dict[str, Type[Keyword]]:
+        return RUNSPEC.get_famous_keyword()
