@@ -19,20 +19,18 @@ from HydrodynamicUtilities.Models.DataFile.Sections import GRID
 
 class BaseKeywordCreator:
     @staticmethod
-    def create_arithmetic(data: str) -> ARITHMETIC:
+    def create_arithmetic(data: ASCIIText) -> ARITHMETIC:
+        str_data = str(data)
         results = []
-        for row in data.split("\n"):
+        for row in str_data.split("\n"):
             if "/" not in row:
                 row = str(ASCIIText(row))
                 results.append(ArithmeticExpression(row))
         return ARITHMETIC(results)
 
     @staticmethod
-    def create_arrcube(data: str) -> GRID.ARRCube:
-        adata = ASCIIText(data)
-
-        kw = str(adata.get_keyword(True))
-        adata = adata.replace_multiplication()
+    def create_arrcube(data: ASCIIText, kw: str) -> GRID.ARRCube:
+        adata = data.replace_multiplication()
         adata = adata.to_slash()
         cubs = np.array(adata.split(), dtype=float)
         return GRID.ARRCube(cubs, kw)
@@ -42,11 +40,12 @@ class BaseKeywordCreator:
 
     def create(self, data: str, data_file: DataFile) -> Keyword:
         adata = ASCIIText(data)
-        kw = adata.get_keyword(False)
+
+        kw = str(adata.get_keyword(False))
         if str(kw) == ARITHMETIC.__name__:
             adata.get_keyword(True)
-            return self.create_arithmetic(str(adata))
+            return self.create_arithmetic(adata)
         if str(kw)[:3] == "ARR":
-            return self.create_arrcube(str(adata))
+            return self.create_arrcube(adata, kw)
         else:
             return UnknownKeyword(str(kw), str(adata))

@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import Optional, List
+    from typing import Optional, List, Tuple
 
 from pathlib import Path
 import pandas as pd
@@ -132,9 +132,8 @@ class ASCIIFilesIndexer:
             start = find.regs[0][0]
             end = find.regs[0][1]
             kword = self._Data[start: end].strip()
-            if kword in all_keyword:
-                results.append(start)
-                keyword.append(kword)
+            results.append(start)
+            keyword.append(kword)
 
         """
         for kword in all_keyword:
@@ -257,23 +256,27 @@ class ASCIIText:
         else:
             return False
 
+    def __get_first_word(self) -> Tuple[int, int, str]:
+        find = re.finditer(f"\s*[a-zA-Z]\w*\s*", self.Text, flags=re.ASCII).__next__()
+        start = find.regs[0][0]
+        end = find.regs[0][1]
+        return start, end, self.Text[start:end].strip()
+
     def get_keyword(self, pop: bool = False) -> ASCIIRow:
         # TODO
-        if self.Text[:self.Text.index("\n")].strip() in all_keyword:
-            kw = self.Text[:self.Text.index("\n")].strip()
-        elif self.Text[:self.Text.index(" ")].strip() in all_keyword:
-            kw = self.Text[:self.Text.index(" ")].strip()
-        elif self.Text[:self.Text.index("\t")].strip() in all_keyword:
-            kw = self.Text[:self.Text.index("\t")].strip()
-        elif self.Text[:8].strip() in all_keyword:
-            kw = self.Text[:8].strip()
-        elif self.Text[:3].strip() in "ARR":
-            kw = self.Text.split()[0]
+        start, end, fw = self.__get_first_word()
+
+        if fw in all_keyword:
+            kw = fw
+        elif fw[:3] == "ARR":
+            kw = fw
+        elif fw[:8] in all_keyword:
+            kw = fw
         else:
             raise ValueError
 
         if pop:
-            self.Text = self.Text[self.Text.find(kw) + len(kw) :].strip()
+            self.Text = self.Text[end:].strip()
 
         return ASCIIRow(kw)
 
@@ -338,6 +341,35 @@ class ASCIIText:
 
         return ASCIIText(" ".join(results))
         # return self
+
+    def get_cub(self) -> np.ndarray:
+        text = self.to_slash()
+
+        if not text.check_multiplication():
+            return np.array(text.split()).astype(float)
+
+        results = []
+
+        start_block = 0
+        i = 0
+        find = re.finditer(f"\s+\S+\*\S+\s*", self.Text, flags=re.ASCII)
+        for string in find:
+            start = string.regs[0][0]
+            end = string.regs[0][1]
+            word = self.Text[start:end].strip()
+            if word == "2*0.2255":
+                print(2*0.2255)
+            if i == 47:
+                print(i)
+            split_word = word.split("*")
+            string_word = int(split_word[0]) * f" {split_word[1]}"
+            results.append(self.Text[start_block:start])
+            results.append(string_word)
+            start_block = end - 1
+            i += 1
+
+        string_results = " ".join(results)
+        return np.array(string_results.split(), dtype=float)
 
     def to_slash(self, pop: bool = False, end_slash: bool = False) -> ASCIIText:
         if end_slash:

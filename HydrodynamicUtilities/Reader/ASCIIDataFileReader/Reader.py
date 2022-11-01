@@ -63,6 +63,7 @@ def convert_to_un_initialized_data_file(
     data_file: DataFile = None,
     active_sections: str = None,
 ) -> UnInitializedDataFile:
+    t = time.time()
     if data_file is None:
         data_file = UnInitializedDataFile()
 
@@ -95,6 +96,7 @@ def convert_to_un_initialized_data_file(
             creator = get_constructor(act_sec)
             kw_data = creator.create(string_data, data_file)
             setattr(act_sec, kw, kw_data)
+    print(f"{files.Path}: {round(time.time() - t, 2)}")
 
     return data_file
 
