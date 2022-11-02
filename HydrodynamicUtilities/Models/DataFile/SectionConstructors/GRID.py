@@ -12,7 +12,7 @@ from typing import Type
 from HydrodynamicUtilities.Models.DataFile.Base import Keyword, UnknownKeyword
 from HydrodynamicUtilities.Models.DataFile.ASCIIFile import ASCIIText
 from HydrodynamicUtilities.Models.DataFile.Sections import GRID
-from ..BaseCreator import BaseKeywordCreator
+from HydrodynamicUtilities.Reader.ASCIIDataFileReader.BaseCreator import BaseKeywordCreator
 import time
 
 

@@ -25,7 +25,7 @@ from HydrodynamicUtilities.Models.Source.EclipseScheduleNames import (
     WELLTRACK,
 )
 
-from ..BaseCreator import BaseKeywordCreator
+from HydrodynamicUtilities.Reader.ASCIIDataFileReader.BaseCreator import BaseKeywordCreator
 
 
 class SCHEDULECreator(BaseKeywordCreator):

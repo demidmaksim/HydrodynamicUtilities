@@ -12,7 +12,7 @@ import os
 
 from pathlib import Path
 
-from HydrodynamicUtilities.Writer import create_schedule
+from HydrodynamicUtilities.Writer import SCHWriter
 from HydrodynamicUtilities.Models.Time import (
     TimeVector,
     generate_time_vector,
@@ -32,9 +32,12 @@ class APPScheduleValidator(Validator):
 
 
 class ScheduleCreatorApp:
-    def __get_time_vector(self, ui: Ui_MainWindow) -> Optional[TimeVector]:
-        sta = TimePoint(ui.dateEdit_start_date_to_sch.dateTime().toString("yyyy-MM-dd"))
-        fin = TimePoint(ui.dateEdit_end_date_to_sch.dateTime().toString("yyyy-MM-dd"))
+    @staticmethod
+    def __get_time_vector(ui: Ui_MainWindow) -> Optional[TimeVector]:
+        sd = ui.dateEdit_start_date_to_sch.dateTime().toString("yyyy-MM-dd")
+        fd = ui.dateEdit_end_date_to_sch.dateTime().toString("yyyy-MM-dd")
+        sta = TimePoint(sd)
+        fin = TimePoint(fd)
         value_step = ui.spinBox_size_to_sch.value()
 
         if sta == fin:
@@ -55,7 +58,8 @@ class ScheduleCreatorApp:
 
         return generate_time_vector(sta, fin, step, value_step)
 
-    def __get_list(self, ui: Ui_MainWindow) -> List[Path]:
+    @staticmethod
+    def __get_list(ui: Ui_MainWindow) -> List[Path]:
         strategy_list = []
 
         for row in range(ui.listWidget_to_sch.count()):
@@ -68,14 +72,15 @@ class ScheduleCreatorApp:
 
         return strategy_list
 
-    def __get_directory(self, ui: Ui_MainWindow) -> Path:
+    @staticmethod
+    def __get_directory(ui: Ui_MainWindow) -> Path:
         if ui.lineEdit_target_folder_to_sch.text() == "":
             return Path(os.path.abspath(os.curdir))
         else:
             return Path(ui.lineEdit_target_folder_to_sch.text())
 
+    @staticmethod
     def __create_each_separately(
-        self,
         ui: Ui_MainWindow,
         time_vector: TimeVector,
         redd: RawExcelDataDict,
@@ -84,14 +89,14 @@ class ScheduleCreatorApp:
         for ref in redd:
             sdf = ref.get_schedule_dataframe()
             source_link = target_dir / (ref.get_name() + ".sch")
-            create_schedule(sdf, time_vector, source_link)
+            SCHWriter().create_schedule(sdf, time_vector, source_link)
             target_folder = Path(ui.lineEdit_target_folder_to_sch.text())
             target_link = target_folder / (ref.get_name() + ".sch")
             text = f"Completed!\t" f"File {target_link} Created!"
             ui.textBrowser_log.append(text)
 
+    @staticmethod
     def __create_jointly(
-        self,
         ui: Ui_MainWindow,
         time_vector: TimeVector,
         redd: RawExcelDataDict,
@@ -104,7 +109,7 @@ class ScheduleCreatorApp:
 
         ref = redd[list(redd.Data.keys())[0]]
         source_link = target_dir / (ref.get_name() + ".sch")
-        create_schedule(sdf, time_vector, source_link)
+        SCHWriter().create_schedule(sdf, time_vector, source_link)
         target_folder = Path(ui.lineEdit_target_folder_to_sch.text())
         target_link = target_folder / (ref.get_name() + ".sch")
         text = f"Completed!\t" f"File {target_link} Created!"

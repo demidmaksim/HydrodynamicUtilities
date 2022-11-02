@@ -15,13 +15,22 @@ class Slider:
 
 
 class Model:
-    __re = "\+|\*|-|\/|\(|\)|\="
-    __base_param = ("IndepVar", "BaseValues", "Arithmetic", "DepVar", "__Slider")
+    __re = r"\+|\*|-|\/|\(|\)|\="
+    __base_param = (
+        "IndepVar",
+        "BaseValues",
+        "Arithmetic",
+        "DepVar",
+        "__Slider",
+    )
 
     def __init__(
-            self,
-            independent_variables: Union[Dict[str, Optional[np.ndarray]], Iterable[str]],
-            cub_arithmetic: Iterable[str]
+        self,
+        independent_variables: Union[
+            Dict[str, Optional[np.ndarray]],
+            Iterable[str],
+        ],
+        cub_arithmetic: Iterable[str],
     ) -> None:
 
         if isinstance(independent_variables, Dict):
@@ -69,7 +78,10 @@ class Model:
             results.append(param)
         return tuple(set(results))
 
-    def all_calc(self, independent_variables: Dict[str, np.ndarray] = None) -> None:
+    def all_calc(
+            self,
+            independent_variables: Dict[str, np.ndarray] = None,
+    ) -> None:
         if independent_variables is None:
             ind_var = dict()
             for param in self.IndepVar:

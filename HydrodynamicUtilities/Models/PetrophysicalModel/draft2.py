@@ -1,21 +1,13 @@
 from __future__ import annotations
 
-from HydrodynamicUtilities.Reader.EclipseBinaryParser import read, read_binary
-import plotly.express as px
 from pathlib import Path
-import pandas as pd
-import numpy as np
 
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import Union, Dict
+    pass
 
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-
-import pandas as pd
-from PetrophysicalModel import Model
+from HydrodynamicUtilities.Models.PetrophysicalModel.PetrophysicalModel import Model
 
 from HydrodynamicUtilities.Reader.ASCIIDataFileReader.Reader import (
     read,

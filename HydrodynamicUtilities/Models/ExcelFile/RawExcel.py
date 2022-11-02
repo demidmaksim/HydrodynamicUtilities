@@ -33,8 +33,8 @@ from ..Source.EclipseScheduleNames import (
 )
 from ..ParamVector import TimeSeries
 from .Converters.DesignPattern import FractureCreator, CompdatmdCreator
-from HydrodynamicUtilities.Models.RockCore.RPP import SimpleRPP, TwoPhaseRPP
-from HydrodynamicUtilities.Models.RockCore.Samples import BaseSamples
+from HydrodynamicUtilities.Models.PetrophysicalModel.RPP import SimpleRPP, TwoPhaseRPP
+from HydrodynamicUtilities.Models.PetrophysicalModel.Samples import BaseSamples
 
 
 def excel_time_to_time_vector(etime: np.ndarray) -> TimeVector:
@@ -129,7 +129,7 @@ def welltrack(df: pd.DataFrame) -> pd.DataFrame:
                 + ((y[1:] - y[:-1]) ** 2)
                 + ((z[1:] - z[:-1]) ** 2)
             )
-            md = md ** 0.5
+            md = md**0.5
             md = md.cumsum()
             all_md[
                 (df[WELLTRACK.WellName] == wname) & (df[WELLTRACK.BoreName] == bname)

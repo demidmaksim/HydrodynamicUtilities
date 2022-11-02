@@ -82,7 +82,7 @@ class SCHWriter:
         self.GroupDesigns = group_designs
         if title is not None:
             self.Title = title
-        if title is not None:
+        if relative_reference is not None:
             self.RelativeReference = relative_reference
 
     def __added_title(self, to_write: io.StringIO) -> None:

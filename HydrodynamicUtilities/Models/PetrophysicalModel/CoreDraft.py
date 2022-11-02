@@ -74,7 +74,7 @@ class LETGOModel:
         e = self.EG
         t = self.TG
         krg = self.KRGR
-        return krg * sngas ** l / (sngas ** l + e * (1 - sngas) ** t)
+        return krg * sngas**l / (sngas**l + e * (1 - sngas) ** t)
 
     def oil_nrpp(
         self,
@@ -84,7 +84,7 @@ class LETGOModel:
         e = self.EOG
         t = self.TOG
         kro = self.KRORG
-        return kro * (1 - sngas) ** l / ((1 - sngas) ** l + e * sngas ** t)
+        return kro * (1 - sngas) ** l / ((1 - sngas) ** l + e * sngas**t)
 
 
 class LETWOModel:
@@ -154,7 +154,7 @@ class LETWOModel:
         e = self.EW
         t = self.TW
         krg = self.KRWR
-        return krg * snwat ** l / (snwat ** l + e * (1 - snwat) ** t)
+        return krg * snwat**l / (snwat**l + e * (1 - snwat) ** t)
 
     def oil_nrpp(
         self,
@@ -164,7 +164,7 @@ class LETWOModel:
         e = self.EOW
         t = self.TOW
         kro = self.KRORW
-        return kro * (1 - snwat) ** l / ((1 - snwat) ** l + e * snwat ** t)
+        return kro * (1 - snwat) ** l / ((1 - snwat) ** l + e * snwat**t)
 
 
 class Normalizer:

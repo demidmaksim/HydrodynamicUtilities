@@ -10,7 +10,7 @@ from copy import deepcopy
 from HydrodynamicUtilities.Models.DataFile.Base import Keyword, UnknownKeyword
 from HydrodynamicUtilities.Models.DataFile.ASCIIFile import ASCIIText
 from HydrodynamicUtilities.Models.DataFile.Sections import RUNSPEC as RS
-from ..BaseCreator import BaseKeywordCreator
+from HydrodynamicUtilities.Reader.ASCIIDataFileReader.BaseCreator import BaseKeywordCreator
 
 
 class RunspecKeywordCreator(BaseKeywordCreator):

@@ -4,13 +4,13 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from typing import List
 
-from HydrodynamicUtilities.App.GUI.UiMainWindow import Ui_MainWindow
-
 import os
 
 from pathlib import Path
 
-from HydrodynamicUtilities.Writer import create_schedule
+from HydrodynamicUtilities.App.GUI.UiMainWindow import Ui_MainWindow
+
+from HydrodynamicUtilities.Writer import SCHWriter
 from HydrodynamicUtilities.Models.Time import TimePoint
 from HydrodynamicUtilities.Reader.ExcelReader import BaseReader
 from HydrodynamicUtilities.Models.Strategy.Frame import ScheduleDataframe
@@ -19,7 +19,9 @@ from HydrodynamicUtilities.Models.HistoryData import FieldHistory
 
 
 class HistCreatorApp:
-    def __get_list(self, ui: Ui_MainWindow) -> List[Path]:
+
+    @staticmethod
+    def __get_list(ui: Ui_MainWindow) -> List[Path]:
         strategy_list = []
 
         for row in range(ui.listWidget_hist.count()):
@@ -32,7 +34,8 @@ class HistCreatorApp:
 
         return strategy_list
 
-    def __get_directory(self, ui: Ui_MainWindow) -> Path:
+    @staticmethod
+    def __get_directory(ui: Ui_MainWindow) -> Path:
         if ui.lineEdit_target_folder_hist.text() == "":
             return Path(os.path.abspath(os.curdir))
         else:
@@ -48,8 +51,10 @@ class HistCreatorApp:
 
     @staticmethod
     def set_global_settings(ui: Ui_MainWindow, data: FieldHistory) -> None:
-        sta = TimePoint(ui.dateEdit_start_date_hist.dateTime().toString("yyyy-MM-dd"))
-        fin = TimePoint(ui.dateEdit_end_date_hist.dateTime().toString("yyyy-MM-dd"))
+        sd = ui.dateEdit_start_date_hist.dateTime().toString("yyyy-MM-dd")
+        fd = ui.dateEdit_end_date_hist.dateTime().toString("yyyy-MM-dd")
+        sta = TimePoint(sd)
+        fin = TimePoint(fd)
 
         if sta == fin:
             text = "Warning! Дата старта совпадвет с датой финиша"
@@ -114,7 +119,8 @@ class HistCreatorApp:
         sdf = self.create_sdf(ui, fh)
         target = self.__get_directory(ui)
         name = fh.get_cipher()
-        create_schedule(sdf, fh.get_time_vector(), target / f"{name}.sch")
+        target_name = target / f"{name}.sch"
+        SCHWriter().create_schedule(sdf, fh.get_time_vector(), target_name)
 
     def create(self, ui: Ui_MainWindow) -> None:
         one_file = ui.checkBox_in_one_file_sch.isChecked()

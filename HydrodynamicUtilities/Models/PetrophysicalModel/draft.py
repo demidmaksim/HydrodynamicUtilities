@@ -16,7 +16,7 @@ from plotly.subplots import make_subplots
 
 import pandas as pd
 
-from HydrodynamicUtilities.Models.RockCore.CoreDraft import (
+from HydrodynamicUtilities.Models.PetrophysicalModel.CoreDraft import (
     LETWOModel,
     LETGOModel,
     Baker2,
@@ -40,9 +40,9 @@ if __name__ == "__main__":
     PORO = np.resize(PORO, (27 * 50,))
     clay = np.resize(clay, (27 * 50,))
     ARRDK = 0.5 + 2 * clay
-    ARRPERM = 555 * PORO ** 2 * (1 - clay) ** 4.3
-    PERMX = ARRPERM * np.exp(0.5 * ARRDK ** 2)
-    PERMZ = ARRPERM * np.exp(-0.5 * ARRDK ** 2)
+    ARRPERM = 555 * PORO**2 * (1 - clay) ** 4.3
+    PERMX = ARRPERM * np.exp(0.5 * ARRDK**2)
+    PERMZ = ARRPERM * np.exp(-0.5 * ARRDK**2)
     SWCR = 1 / (12.3 * PORO * (1 - clay) ** 2.7 + 1)
     ARRRF = 0.0311 * np.log(PERMX) + 0.4443
     SGCR = (1 - SWCR) * (1 - ARRRF)

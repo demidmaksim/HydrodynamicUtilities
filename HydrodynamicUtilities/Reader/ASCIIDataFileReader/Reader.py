@@ -1,13 +1,16 @@
-from HydrodynamicUtilities.Models.DataFile.Base import Section, UnInitializedSection
+from HydrodynamicUtilities.Models.DataFile.Base import (
+    Section,
+    UnInitializedSection,
+)
 from HydrodynamicUtilities.Models.DataFile.DataFile import (
     DataFile,
     UnInitializedDataFile,
 )
-from HydrodynamicUtilities.Models.DataFile.ASCIIFile import ASCIIFilesIndexer
+from HydrodynamicUtilities.Models.DataFile.IndexedFile import ASCIIFilesIndexer
 
 from pathlib import Path
 import time
-from .SectionConstructors import get_constructor
+from HydrodynamicUtilities.Models.DataFile.SectionConstructors import get_constructor
 
 
 def read(path: Path, parent: ASCIIFilesIndexer = None) -> ASCIIFilesIndexer:
