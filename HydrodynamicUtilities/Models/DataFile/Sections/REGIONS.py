@@ -20,7 +20,6 @@ class REGIONS(Section):
 
 
 class UnInitializedREGIONS(UnInitializedSection):
-
     @classmethod
     def get_famous_keyword(cls) -> Dict[str, Type[Keyword]]:
         return REGIONS.get_famous_keyword()

@@ -122,7 +122,7 @@ class ASCIIFilesIndexer:
         for find in target:
             start = find.regs[0][0]
             end = find.regs[0][1]
-            kword = self._Data[start: end].strip()
+            kword = self._Data[start:end].strip()
             if kword in all_keyword:
                 results.append(start)
                 keyword.append(kword)
@@ -131,7 +131,7 @@ class ASCIIFilesIndexer:
         for find in target:
             start = find.regs[0][0]
             end = find.regs[0][1]
-            kword = self._Data[start: end].strip()
+            kword = self._Data[start:end].strip()
             results.append(start)
             keyword.append(kword)
 
@@ -346,30 +346,51 @@ class ASCIIText:
         text = self.to_slash()
 
         if not text.check_multiplication():
-            return np.array(text.split()).astype(float)
+            return np.fromstring(text, dtype=float, sep="\s+")
 
         results = []
 
+        target_text = re.subn(r"\n", " ", str(text), flags=re.ASCII)[0]
+        target_text = re.subn(r"\t", " ", target_text, flags=re.ASCII)[0]
+        # target_text = re.subn(r"[ ]{2,}", " ", target_text, flags=re.ASCII)[0]
+        # target_text = self.Text.replace("\n", " ")
+        # target_text = target_text.replace("\t", " ")
+
         start_block = 0
         i = 0
-        find = re.finditer(f"\s+\S+\*\S+\s*", self.Text, flags=re.ASCII)
+        find = re.finditer(r"\*", target_text, flags=re.ASCII)
+
         for string in find:
+            pass
+            ind = string.regs[0][0]
+            left_ind = target_text.rfind(" ", start_block, ind)
+            if left_ind == -1:
+                left_ind = 0
+
+            right_ind = target_text.find(" ", ind)
+            mylt = target_text[left_ind:right_ind].strip().split("*")
+            data = int(mylt[0]) * f" {mylt[1]}"
+            results.append(target_text[start_block:left_ind])
+            results.append(data)
+            start_block = right_ind
+        else:
+            results.append(target_text[start_block:])
+
+            """
             start = string.regs[0][0]
             end = string.regs[0][1]
-            word = self.Text[start:end].strip()
-            if word == "2*0.2255":
-                print(2*0.2255)
-            if i == 47:
-                print(i)
+            word = target_text[start:end].strip()
             split_word = word.split("*")
             string_word = int(split_word[0]) * f" {split_word[1]}"
-            results.append(self.Text[start_block:start])
+            results.append(target_text[start_block:start])
             results.append(string_word)
             start_block = end - 1
             i += 1
+            """
 
         string_results = " ".join(results)
-        return np.array(string_results.split(), dtype=float)
+        list_results = string_results.split()
+        return np.array(list_results, dtype=float)
 
     def to_slash(self, pop: bool = False, end_slash: bool = False) -> ASCIIText:
         if end_slash:

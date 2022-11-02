@@ -20,7 +20,6 @@ class SOLUTION(Section):
 
 
 class UnInitializedSOLUTION(UnInitializedSection):
-
     @classmethod
     def get_famous_keyword(cls) -> Dict[str, Type[Keyword]]:
         return SOLUTION.get_famous_keyword()

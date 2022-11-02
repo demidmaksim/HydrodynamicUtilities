@@ -1,5 +1,8 @@
 from HydrodynamicUtilities.Models.DataFile.Base import Section, UnInitializedSection
-from HydrodynamicUtilities.Models.DataFile.DataFile import DataFile, UnInitializedDataFile
+from HydrodynamicUtilities.Models.DataFile.DataFile import (
+    DataFile,
+    UnInitializedDataFile,
+)
 from HydrodynamicUtilities.Models.DataFile.ASCIIFile import ASCIIFilesIndexer
 
 from pathlib import Path
@@ -84,7 +87,9 @@ def convert_to_un_initialized_data_file(
             kw_ind = int(row["include"]) - 1
             include_file = files.Entities[kw_ind]
             sec_name = act_sec.__repr__()
-            data_file = convert_to_un_initialized_data_file(include_file, data_file, sec_name)
+            data_file = convert_to_un_initialized_data_file(
+                include_file, data_file, sec_name
+            )
 
         elif kw in DataFile.get_section_name():
             act_sec = getattr(data_file, kw)

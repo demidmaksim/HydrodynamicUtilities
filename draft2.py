@@ -32,13 +32,11 @@ if __name__ == "__main__":
         read(folder / "PORO.GRDECL"), active_sections="GRID"
     ).GRID.Cubs.PORO.Data
 
-    PORO, CLAY = np.meshgrid(np.arange(0.05, 0.32, 0.01), np.arange(0, 1, 0.02))
-    PORO = np.resize(PORO, (27 * 50,))
-    CLAY = np.resize(CLAY, (27 * 50,))
-
     data = Model(
-        PORO,
-        CLAY,
+        {
+            "PORO": model_poro,
+            "CLAY": model_clay,
+        },
         (
             "ARRDK = 0.5 + 2 * CLAY",
             "ARRPERM = 555 * PORO ** 2 * (1 - CLAY) ** 4.3",
@@ -52,4 +50,5 @@ if __name__ == "__main__":
             "KRW = ln(PERMX) * 0.0507 + 0.2562",
         ),
     )
+    data.all_calc()
     pass

@@ -30,10 +30,7 @@ class BaseKeywordCreator:
 
     @staticmethod
     def create_arrcube(data: ASCIIText, kw: str) -> GRID.ARRCube:
-        adata = data.replace_multiplication()
-        adata = adata.to_slash()
-        cubs = np.array(adata.split(), dtype=float)
-        return GRID.ARRCube(cubs, kw)
+        return GRID.ARRCube(data.get_cub(), kw)
 
     def choose_fun(self, kw: str) -> Callable:
         return self.__getattribute__(kw.lower())

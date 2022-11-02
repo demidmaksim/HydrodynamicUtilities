@@ -20,7 +20,6 @@ class SUMMARY(Section):
 
 
 class UnInitializedSUMMARY(UnInitializedSection):
-
     @classmethod
     def get_famous_keyword(cls) -> Dict[str, Type[Keyword]]:
         return SUMMARY.get_famous_keyword()

@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from typing import Tuple
 
 from .Sections.RUNSPEC import RUNSPEC, UnInitializedRUNSPEC
-from .Sections.GRID import GRID,UnInitializedGRID
+from .Sections.GRID import GRID, UnInitializedGRID
 from .Sections.EDIT import EDIT, UnInitializedEDIT
 from .Sections.PROPS import PROPS, UnInitializedPROPS
 from .Sections.REGIONS import REGIONS, UnInitializedREGIONS

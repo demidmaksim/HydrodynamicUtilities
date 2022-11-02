@@ -243,7 +243,6 @@ class RUNSPEC(Section):
 
 
 class UnInitializedRUNSPEC(UnInitializedSection):
-    
     @classmethod
     def get_famous_keyword(cls) -> Dict[str, Type[Keyword]]:
         return RUNSPEC.get_famous_keyword()

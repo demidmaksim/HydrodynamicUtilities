@@ -36,7 +36,6 @@ class SettingConstructor(BaseKeywordCreator):
 
 
 class CubsConstructor(BaseKeywordCreator):
-
     @staticmethod
     def create_cubs(data: ASCIIText, kw: str):
         t = time.time()
@@ -58,7 +57,6 @@ class CubsConstructor(BaseKeywordCreator):
 
 
 class MeshConstructor(BaseKeywordCreator):
-
     @staticmethod
     def create_mesh_keyword(adata: ASCIIText, kw: str):
         adata = adata.replace_multiplication()
