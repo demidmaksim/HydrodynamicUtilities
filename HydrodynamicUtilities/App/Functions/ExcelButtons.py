@@ -4,16 +4,16 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from typing import List
 
-from App.GUI.UiMainWindow import Ui_MainWindow
+from HydrodynamicUtilities.App.GUI.UiMainWindow import Ui_MainWindow
 
 import os
 
 from pathlib import Path
 
 
-from HydrodynamicModelAnalysis.Models.Strategy.Frame import ScheduleDataframe
-from Reader.ReaderASCII import read_schedule_section
-from Writer.Schedule.ToExcel import write_xlsx
+from HydrodynamicUtilities.Models.Strategy.Frame import ScheduleDataframe
+from HydrodynamicUtilities.Reader.ReaderASCII import read_schedule_section
+from HydrodynamicUtilities.Writer.Schedule.ToExcel import write_xlsx
 
 
 class AsciiReaderApp:
@@ -41,7 +41,7 @@ class AsciiReaderApp:
     ) -> None:
         for path in path_list:
             data = read_schedule_section(path)
-            sdf = data.SCHEDULE.SDF
+            sdf = data.SCHEDULE.Sdf
             filename, file_extension = os.path.splitext(path.name)
             write_xlsx(sdf, target_path / f"{filename}.xlsx")
             text = f"Completed!\t" f"File {target_path}/{filename}/.xlsx Created!"
@@ -53,7 +53,7 @@ class AsciiReaderApp:
         all_sdf = ScheduleDataframe()
         for path in path_list:
             data = read_schedule_section(path)
-            sdf = data.SCHEDULE.SDF
+            sdf = data.SCHEDULE.Sdf
             all_sdf = all_sdf + sdf
 
         filename, file_extension = os.path.splitext(path_list[0].name)

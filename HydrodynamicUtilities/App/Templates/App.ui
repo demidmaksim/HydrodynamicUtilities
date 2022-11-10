@@ -6,15 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>974</width>
-    <height>662</height>
+    <width>1078</width>
+    <height>749</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>ScheduleCreator</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_2">
+   <layout class="QVBoxLayout" name="verticalLayout_6">
     <item>
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
@@ -28,7 +28,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>3</number>
        </property>
        <widget class="QWidget" name="tab">
         <attribute name="title">
@@ -176,12 +176,12 @@
              </property>
              <property name="dateTime">
               <datetime>
-               <hour>0</hour>
+               <hour>21</hour>
                <minute>0</minute>
                <second>0</second>
                <year>2023</year>
                <month>1</month>
-               <day>2</day>
+               <day>1</day>
               </datetime>
              </property>
              <property name="currentSection">
@@ -206,12 +206,12 @@
             <widget class="QDateEdit" name="dateEdit_start_date_to_sch">
              <property name="dateTime">
               <datetime>
-               <hour>0</hour>
+               <hour>21</hour>
                <minute>0</minute>
                <second>0</second>
                <year>2022</year>
                <month>1</month>
-               <day>2</day>
+               <day>1</day>
               </datetime>
              </property>
              <property name="calendarPopup">
@@ -359,12 +359,12 @@
             <widget class="QDateEdit" name="dateEdit_start_date_hist">
              <property name="dateTime">
               <datetime>
-               <hour>0</hour>
+               <hour>21</hour>
                <minute>0</minute>
                <second>0</second>
                <year>2010</year>
                <month>1</month>
-               <day>2</day>
+               <day>1</day>
               </datetime>
              </property>
              <property name="calendarPopup">
@@ -470,12 +470,12 @@
             <widget class="QDateEdit" name="dateEdit_end_date_hist">
              <property name="dateTime">
               <datetime>
-               <hour>0</hour>
+               <hour>21</hour>
                <minute>0</minute>
                <second>0</second>
                <year>2020</year>
                <month>1</month>
-               <day>2</day>
+               <day>1</day>
               </datetime>
              </property>
              <property name="calendarPopup">
@@ -677,6 +677,626 @@
          </item>
         </layout>
        </widget>
+       <widget class="QWidget" name="tab_5">
+        <attribute name="title">
+         <string>Выгрузка отчетов</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_12">
+         <item>
+          <widget class="QFrame" name="frame_6">
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_8">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <layout class="QGridLayout" name="gridLayout_19">
+              <item row="0" column="2">
+               <widget class="QPushButton" name="pushButton_create_report">
+                <property name="text">
+                 <string>Собрать</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="3">
+               <widget class="QLabel" name="label_20">
+                <property name="text">
+                 <string>Формат Data листа</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="4">
+               <widget class="QComboBox" name="comboBox_choose_report_type">
+                <item>
+                 <property name="text">
+                  <string>Горизонтальный</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Вертикальный</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QPushButton" name="pushButton_del_report_source">
+                <property name="text">
+                 <string>Удалить</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QPushButton" name="pushButton_add_report_source">
+                <property name="text">
+                 <string>Добавить</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_11">
+             <item>
+              <widget class="QFrame" name="frame_7">
+               <property name="styleSheet">
+                <string notr="true">background-color: rgb(200, 200, 199);</string>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::StyledPanel</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_7">
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>9</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>9</number>
+                </property>
+                <item>
+                 <layout class="QGridLayout" name="gridLayout_25">
+                  <item row="1" column="0">
+                   <widget class="QCheckBox" name="checkBox_request_bhp">
+                    <property name="styleSheet">
+                     <string notr="true"/>
+                    </property>
+                    <property name="text">
+                     <string>BHP</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QCheckBox" name="checkBox_request_thp">
+                    <property name="styleSheet">
+                     <string notr="true"/>
+                    </property>
+                    <property name="text">
+                     <string>THP</string>
+                    </property>
+                    <property name="checked">
+                     <bool>false</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="2">
+                   <widget class="QCheckBox" name="checkBox_request_time_work">
+                    <property name="text">
+                     <string>Время работы</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="3">
+                   <widget class="QCheckBox" name="checkBox_request_cum_time">
+                    <property name="text">
+                     <string>Нак. время работы</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="0" colspan="4">
+                   <widget class="QLabel" name="label_34">
+                    <property name="text">
+                     <string>Параметры скважин</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_9">
+               <item>
+                <widget class="QFrame" name="frame_2">
+                 <property name="layoutDirection">
+                  <enum>Qt::LeftToRight</enum>
+                 </property>
+                 <property name="autoFillBackground">
+                  <bool>false</bool>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">border-color: rgb(200, 200, 199);
+background-color: rgb(200, 200, 199);</string>
+                 </property>
+                 <property name="frameShape">
+                  <enum>QFrame::StyledPanel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                 <layout class="QHBoxLayout" name="horizontalLayout_4">
+                  <property name="spacing">
+                   <number>4</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>4</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>4</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>4</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>4</number>
+                  </property>
+                  <item>
+                   <layout class="QGridLayout" name="gridLayout_21">
+                    <item row="0" column="1">
+                     <widget class="QLabel" name="label_21">
+                      <property name="text">
+                       <string>По объектам</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="0">
+                     <widget class="QLabel" name="label_24">
+                      <property name="text">
+                       <string>Группа</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="2">
+                     <widget class="QCheckBox" name="checkBox_request_well_param">
+                      <property name="styleSheet">
+                       <string notr="true">border-color: rgb(200, 200, 199);</string>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="2" column="1">
+                     <widget class="QCheckBox" name="checkBox_request_group_object">
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="checked">
+                       <bool>true</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="2" column="0">
+                     <widget class="QLabel" name="label_25">
+                      <property name="text">
+                       <string>Скважины</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="2">
+                     <widget class="QLabel" name="label_22">
+                      <property name="text">
+                       <string>По параметрам</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="2" column="3">
+                     <widget class="QCheckBox" name="checkBox_request_group_model">
+                      <property name="text">
+                       <string/>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="2" column="2">
+                     <widget class="QCheckBox" name="checkBox__request_group_param">
+                      <property name="text">
+                       <string/>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="3">
+                     <widget class="QLabel" name="label_23">
+                      <property name="text">
+                       <string>По моделям</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="1">
+                     <widget class="QCheckBox" name="checkBox_request_well_object">
+                      <property name="focusPolicy">
+                       <enum>Qt::StrongFocus</enum>
+                      </property>
+                      <property name="contextMenuPolicy">
+                       <enum>Qt::DefaultContextMenu</enum>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="checked">
+                       <bool>true</bool>
+                      </property>
+                      <property name="tristate">
+                       <bool>false</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="3">
+                     <widget class="QCheckBox" name="checkBox_request_well_model">
+                      <property name="text">
+                       <string/>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QFrame" name="frame_3">
+                 <property name="styleSheet">
+                  <string notr="true">background-color: rgb(200, 200, 199);</string>
+                 </property>
+                 <property name="frameShape">
+                  <enum>QFrame::StyledPanel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_4">
+                  <item>
+                   <layout class="QGridLayout" name="gridLayout_22">
+                    <item row="2" column="1">
+                     <widget class="QCheckBox" name="checkBox_request_wct">
+                      <property name="text">
+                       <string>WCT</string>
+                      </property>
+                      <property name="checked">
+                       <bool>true</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="2" column="0">
+                     <widget class="QCheckBox" name="checkBox_request_gor">
+                      <property name="text">
+                       <string>GOR</string>
+                      </property>
+                      <property name="checked">
+                       <bool>true</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="2" column="2">
+                     <widget class="QCheckBox" name="checkBox__request_pi">
+                      <property name="text">
+                       <string>Продуктивность</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="0" colspan="3">
+                     <widget class="QLabel" name="label_26">
+                      <property name="text">
+                       <string>Анализ</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_10">
+             <item>
+              <widget class="QFrame" name="frame_4">
+               <property name="styleSheet">
+                <string notr="true">background-color: rgb(200, 200, 199);</string>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::StyledPanel</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_5">
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <layout class="QGridLayout" name="gridLayout_26">
+                  <property name="verticalSpacing">
+                   <number>0</number>
+                  </property>
+                  <item row="0" column="0" colspan="2">
+                   <widget class="QLabel" name="label_35">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>16777215</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>Параметры групп</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QCheckBox" name="checkBox_request_cum_compensation">
+                    <property name="text">
+                     <string>Накопленная компенсация</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QCheckBox" name="checkBox_request_compensation">
+                    <property name="text">
+                     <string>Компенсация</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QFrame" name="frame">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="font">
+                <font>
+                 <stylestrategy>PreferDefault</stylestrategy>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background-color: rgb(200, 200, 199);</string>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::StyledPanel</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_2">
+                <item>
+                 <layout class="QGridLayout" name="gridLayout_23">
+                  <item row="0" column="1">
+                   <widget class="QLabel" name="label_27">
+                    <property name="text">
+                     <string>Объемные</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="2">
+                   <widget class="QLabel" name="label_28">
+                    <property name="text">
+                     <string>Массовые</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="3">
+                   <widget class="QLabel" name="label_29">
+                    <property name="text">
+                     <string>Пластовые</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="label_30">
+                    <property name="text">
+                     <string>Нефть</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QCheckBox" name="checkBox_oil_value">
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="2">
+                   <widget class="QCheckBox" name="checkBox_oil_mass">
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="3">
+                   <widget class="QCheckBox" name="checkBox_oil_res">
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="0">
+                   <widget class="QLabel" name="label_31">
+                    <property name="text">
+                     <string>Вода</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="1">
+                   <widget class="QCheckBox" name="checkBox_wat_value">
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="2">
+                   <widget class="QCheckBox" name="checkBox_wat_mass">
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="3">
+                   <widget class="QCheckBox" name="checkBox_wat_res">
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="0">
+                   <widget class="QLabel" name="label_32">
+                    <property name="text">
+                     <string>Газ</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="1">
+                   <widget class="QCheckBox" name="checkBox_gas_value">
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="2">
+                   <widget class="QCheckBox" name="checkBox_gas_mass">
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="3">
+                   <widget class="QCheckBox" name="checkBox_gas_res">
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="0">
+                   <widget class="QLabel" name="label_33">
+                    <property name="text">
+                     <string>Жидкость</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="1">
+                   <widget class="QCheckBox" name="checkBox_liq_value">
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="2">
+                   <widget class="QCheckBox" name="checkBox_liq_mass">
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="3">
+                   <widget class="QCheckBox" name="checkBox_liq_res">
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QListWidget" name="listWidget_for_report"/>
+         </item>
+        </layout>
+       </widget>
       </widget>
       <widget class="QTextBrowser" name="textBrowser_log">
        <property name="sizePolicy">
@@ -695,7 +1315,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>974</width>
+     <width>1078</width>
      <height>22</height>
     </rect>
    </property>
@@ -704,6 +1324,102 @@
  </widget>
  <resources/>
  <connections>
+  <connection>
+   <sender>pushButton_target_folder_hist</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>choose_target_folder_hist()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>589</x>
+     <y>227</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>735</x>
+     <y>546</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_target_folder_to_excel</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>choose_target_folder_to_excel()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>584</x>
+     <y>133</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>532</x>
+     <y>545</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_add_sch</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>add_sch_to_excel()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>133</x>
+     <y>86</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>17</x>
+     <y>25</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_get_pattern_hist</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>create_hist_pattern()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>539</x>
+     <y>79</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>565</x>
+     <y>572</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_delite_excel_hist</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>del_hist()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>146</x>
+     <y>71</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>153</x>
+     <y>23</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_create_excel_from_sch</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>create_excel_from_sch()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>438</x>
+     <y>83</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>375</x>
+     <y>572</y>
+    </hint>
+   </hints>
+  </connection>
   <connection>
    <sender>button_add_excel_sch</sender>
    <signal>clicked()</signal>
@@ -716,38 +1432,6 @@
     </hint>
     <hint type="destinationlabel">
      <x>161</x>
-     <y>27</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_delite_excel_sch</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>del_excel_to_sch()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>158</x>
-     <y>80</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>307</x>
-     <y>27</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_check_ecxel_sch</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>scheck_excel_to_sch()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>268</x>
-     <y>78</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>443</x>
      <y>27</y>
     </hint>
    </hints>
@@ -769,146 +1453,18 @@
    </hints>
   </connection>
   <connection>
-   <sender>button_get_pattern_sch</sender>
+   <sender>button_delite_excel_sch</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
-   <slot>create_excel_pattern_sch()</slot>
+   <slot>del_excel_to_sch()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>584</x>
-     <y>86</y>
+     <x>158</x>
+     <y>80</y>
     </hint>
     <hint type="destinationlabel">
-     <x>580</x>
+     <x>307</x>
      <y>27</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_add_sch</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>add_sch_to_excel()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>133</x>
-     <y>86</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>17</x>
-     <y>25</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_delite_sch</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>del_sch_to_excel()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>228</x>
-     <y>79</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>220</x>
-     <y>572</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_create_excel_from_sch</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>create_excel_from_sch()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>438</x>
-     <y>83</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>375</x>
-     <y>572</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_add_excel_hist</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>add_hist()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>45</x>
-     <y>75</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>45</x>
-     <y>29</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_delite_excel_hist</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>del_hist()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>146</x>
-     <y>71</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>153</x>
-     <y>23</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_check_ecxel_hist</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>check_hist_files()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>274</x>
-     <y>76</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>277</x>
-     <y>22</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_create_sch_hist</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>create_from_hist_files()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>432</x>
-     <y>86</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>388</x>
-     <y>572</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_get_pattern_hist</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>create_hist_pattern()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>539</x>
-     <y>79</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>565</x>
-     <y>572</y>
     </hint>
    </hints>
   </connection>
@@ -929,34 +1485,98 @@
    </hints>
   </connection>
   <connection>
-   <sender>pushButton_target_folder_to_excel</sender>
+   <sender>button_delite_sch</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
-   <slot>choose_target_folder_to_excel()</slot>
+   <slot>del_sch_to_excel()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>584</x>
-     <y>133</y>
+     <x>228</x>
+     <y>79</y>
     </hint>
     <hint type="destinationlabel">
-     <x>532</x>
-     <y>545</y>
+     <x>220</x>
+     <y>572</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>pushButton_target_folder_hist</sender>
+   <sender>button_check_ecxel_hist</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
-   <slot>choose_target_folder_hist()</slot>
+   <slot>check_hist_files()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>589</x>
-     <y>227</y>
+     <x>274</x>
+     <y>76</y>
     </hint>
     <hint type="destinationlabel">
-     <x>735</x>
-     <y>546</y>
+     <x>277</x>
+     <y>22</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_check_ecxel_sch</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>scheck_excel_to_sch()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>268</x>
+     <y>78</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>443</x>
+     <y>27</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_add_excel_hist</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>add_hist()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>45</x>
+     <y>75</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>45</x>
+     <y>29</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_get_pattern_sch</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>create_excel_pattern_sch()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>584</x>
+     <y>86</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>580</x>
+     <y>27</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_create_sch_hist</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>create_from_hist_files()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>432</x>
+     <y>86</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>388</x>
+     <y>572</y>
     </hint>
    </hints>
   </connection>

@@ -1,4 +1,15 @@
-from typing import Dict, Tuple, Optional, Iterator, Union, Type, List
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Dict, Tuple, Optional, Iterator, Union, Type, List, Callable
+
+import io
+import pandas as pd
+
+from tabulate import tabulate
+from abc import abstractmethod
 
 
 class BaseKeyWord:
@@ -10,6 +21,30 @@ class BaseKeyWord:
     ColumnType: Tuple[Type, ...] = (str,) * 100
     LastMulti = False
 
+    @classmethod
+    @abstractmethod
+    def to_string(
+        cls,
+        df: pd.DataFrame,
+        path_or_buf: Union[str, io.StringIO] = None,
+    ) -> Union[str, io.StringIO]:
+        pass
+
+    @staticmethod
+    def get_fun(
+        path_or_buf: Union[str, io.StringIO] = None
+    ) -> Tuple[Union[str, io.StringIO], Callable]:
+        if isinstance(path_or_buf, str):
+            fun = path_or_buf.__add__
+        elif isinstance(path_or_buf, io.StringIO):
+            fun = path_or_buf.write
+        elif path_or_buf is None:
+            path_or_buf = ""
+            fun = path_or_buf.__add__
+        else:
+            raise TypeError
+        return path_or_buf, fun
+
 
 class OneRowKeyword(BaseKeyWord):
     Order: Tuple[str, ...] = ()
@@ -18,6 +53,28 @@ class OneRowKeyword(BaseKeyWord):
     AdditionalMustToBe: Dict[str, Union[str, List[str], None]] = dict()
     XLSXPatern = Order
     ColumnType: Tuple[Type, ...] = (str,) * 100
+
+    @classmethod
+    def to_string(
+        cls,
+        df: pd.DataFrame,
+        path_or_buf: Union[str, io.StringIO] = None,
+    ) -> Union[str, io.StringIO]:
+        df = df.drop("Time", axis=1)
+
+        path_or_buf, fun = cls.get_fun(path_or_buf)
+
+        if not df.empty:
+            fun(f"{cls.__name__}\n")
+            if not issubclass(cls, ARITHMETIC):
+                df["End"] = "/"
+
+            new_df = df.fillna(value="1*")
+            for_write = tabulate(new_df, showindex=False, tablefmt="plain")
+            fun("  ")
+            fun(for_write.replace("\n", "\n  "))
+            fun(f"\n/\n\n")
+        return path_or_buf
 
 
 class WELSPECS(OneRowKeyword):
@@ -92,15 +149,7 @@ class WELLTRACK(BaseKeyWord):
         MD,
     )
 
-    MustToBe = (
-        WellName,
-        BoreName,
-        PointNumber,
-        X,
-        Y,
-        Z,
-        MD,
-    )
+    MustToBe = Order
 
     ColumnType = (
         str,
@@ -110,6 +159,43 @@ class WELLTRACK(BaseKeyWord):
         float,
         float,
     )
+
+    @classmethod
+    def to_string(
+        cls,
+        df: pd.DataFrame,
+        path_or_buf: Union[str, io.StringIO] = None,
+    ) -> Union[str, io.StringIO]:
+        df = df.drop("Time", axis=1)
+
+        path_or_buf, fun = cls.get_fun(path_or_buf)
+
+        for wname in pd.unique(df[WELLTRACK.WellName]):
+            well_df = df[df[WELLTRACK.WellName] == wname]
+            for bname in pd.unique(well_df[WELLTRACK.BoreName]):
+                bore_df = well_df[well_df[WELLTRACK.BoreName] == bname]
+                bore_df = bore_df.sort_values(WELLTRACK.PointNumber)
+                bore_df = bore_df.drop(WELLTRACK.WellName, axis=1)
+                bore_df = bore_df.drop(WELLTRACK.BoreName, axis=1)
+                bore_df = bore_df.drop(WELLTRACK.PointNumber, axis=1)
+
+                if int(bname) == 0:
+                    fun(f"WELLTRACK {wname}\n")
+                else:
+                    fun(f"WELLTRACK {wname}:{bname}\n")
+
+                bore_df = bore_df.astype(float)
+                bore_df = bore_df.fillna(value="1*")
+                for_write = tabulate(
+                    bore_df,
+                    showindex=False,
+                    tablefmt="plain",
+                    floatfmt=".2f",
+                )
+                fun("  ")
+                fun(for_write.replace("\n", "\n  "))
+                fun(f"\n/\n\n")
+        return path_or_buf
 
 
 class COMPDATMD(OneRowKeyword):
@@ -1018,6 +1104,22 @@ class Comment(BaseKeyWord):
 
     Order = (Comment,)
 
+    @classmethod
+    def to_string(
+        cls,
+        df: pd.DataFrame,
+        path_or_buf: Union[str, io.StringIO] = None,
+    ) -> Union[str, io.StringIO]:
+        df = df.drop("Time", axis=1)
+        path_or_buf, fun = cls.get_fun(path_or_buf)
+        if not df.empty:
+            new_df = df.fillna(value=" ")
+            for_write = tabulate(new_df, showindex=False, tablefmt="plain")
+            fun("  ")
+            fun(for_write.replace("\n", "\n--"))
+            fun(f"\n")
+        return path_or_buf
+
 
 class ArbitraryWord(BaseKeyWord):
     KeyWordName = "Ключевое слово"
@@ -1027,6 +1129,24 @@ class ArbitraryWord(BaseKeyWord):
         KeyWordName,
         KeyWordValue,
     )
+
+    def to_string(
+        cls,
+        df: pd.DataFrame,
+        path_or_buf: Union[str, io.StringIO] = None,
+    ) -> Union[str, io.StringIO]:
+
+        df = df.drop("Time", axis=1)
+        path_or_buf, fun = cls.get_fun(path_or_buf)
+
+        if not df.empty:
+            fun(f"{cls.__name__}\n")
+            new_df = df.fillna(value="1*")
+            for_write = tabulate(new_df, showindex=False, tablefmt="plain")
+            fun("  ")
+            fun(for_write.replace("\n", "\n  "))
+            fun(f"\n/\n\n")
+        return path_or_buf
 
 
 class WELTARG(OneRowKeyword):
@@ -1058,7 +1178,7 @@ class WGRUPCON(OneRowKeyword):
 
 
 class WTEST(OneRowKeyword):
-    WellName = "Имя скважины"
+    WellName = "Имя скважины/списка"
     CheckInterval = "Интервал проверки"
     ClosingCondition = "Условие закрытия"
     InspectionsNumber = "Количество проверок скважины"

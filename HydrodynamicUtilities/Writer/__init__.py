@@ -1,2 +1,2 @@
-from .Schedule import create_schedule
+from .Schedule import SCHWriter
 from .Schedule import get_pattern, write_xlsx

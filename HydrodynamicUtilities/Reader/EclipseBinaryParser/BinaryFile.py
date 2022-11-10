@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from typing import Dict, Any, Union
-    from HydrodynamicModelAnalysis.Models.EclipseBinaryFile import (
+    from HydrodynamicUtilities.Models.EclipseBinaryFile import (
         SUMMARY,
         EclipseBinaryData,
     )
@@ -19,12 +19,14 @@ import time
 from pathlib import Path
 
 from .BaseBinaryReader import BinaryReader
-from HydrodynamicModelAnalysis.Models.EclipseBinaryFile import (
+from HydrodynamicUtilities.Models.EclipseBinaryFile import (
     SUMMARYHeader,
     BinaryData,
     SUMMARY,
+    INIT,
+    UNRSTRSSPEC,
 )
-from HydrodynamicModelAnalysis.Models import TimeVector as Time
+from HydrodynamicUtilities.Models.Time import TimeVector as Time
 
 
 class Convertor:
@@ -73,8 +75,8 @@ def to_summary(calc_name: str, smspec: RowBinaryData, unsmry: RowBinaryData) -> 
     summary_header = SUMMARYHeader(
         np.array(smspec_dict["KEYWORDS"]),
         np.array(smspec_dict["WGNAMES"]),
-        smspec_dict["NUMS"],
-        smspec_dict["UNITS"],
+        np.array(smspec_dict["NUMS"]),
+        np.array(smspec_dict["UNITS"]),
     )
 
     summary = SUMMARY(
@@ -87,6 +89,21 @@ def to_summary(calc_name: str, smspec: RowBinaryData, unsmry: RowBinaryData) -> 
     return summary
 
 
+def to_init(row_data: RowBinaryData, row_inspec: RowBinaryData) -> INIT:
+    data = Convertor.to_as_it_is(row_data)
+    inspec = Convertor.to_as_it_is(row_inspec)
+    return INIT(BinaryData(data), BinaryData(inspec))
+
+
+def to_unrst_rsspec(
+    row_unrst: RowBinaryData,
+    row_rsspec: RowBinaryData,
+) -> UNRSTRSSPEC:
+    unrst = Convertor.to_as_it_is(row_unrst)
+    rsspec = Convertor.to_as_it_is(row_rsspec)
+    return UNRSTRSSPEC(BinaryData(unrst), BinaryData(rsspec))
+
+
 def get_time_vector(
     smspec: Dict[str, Any],
     unsmry: Dict[str, Any],
@@ -95,7 +112,7 @@ def get_time_vector(
     dey_vector: np.ndarray = unsmry["PARAMS"][:, 0]
     results = []
     for day_id, day in enumerate(dey_vector):
-        day *= 3600 * 24 * 10 ** 3
+        day *= 3600 * 24 * 10**3
         results.append(datetime + np.timedelta64(int(day), "ms"))
 
     return Time(np.array(results))
@@ -106,6 +123,10 @@ def read(link: Path, log: bool = True) -> Union[EclipseBinaryData]:
     t = time.time()
     if file_extension in (".SMSPEC", ".UNSMRY"):
         results = read_summary(link)
+    elif file_extension in (".INIT", ".INSPEC"):
+        results = read_init(link)
+    elif file_extension in (".UNRST", ".RSSPEC"):
+        results = read_unrst_rsspec(link)
     else:
         results = read_binary(link)
 
@@ -129,6 +150,38 @@ def read_summary(link: Path) -> SUMMARY:
         raise ValueError(f"File extension can only be '.UNSMRY', '.SMSPEC'")
 
     return to_summary(filename, smspec, unsmry)
+
+
+def read_init(link: Path) -> INIT:
+    folder = link.parent
+    filename, file_extension = os.path.splitext(link.name)
+
+    if file_extension.upper() == ".INIT":
+        init = BinaryReader.read_all_file(folder / (filename + file_extension))
+        inspec = BinaryReader.read_all_file(folder / (filename + ".INSPEC"))
+    elif file_extension.upper() == ".INSPEC":
+        init = BinaryReader.read_all_file(folder / (filename + ".INIT"))
+        inspec = BinaryReader.read_all_file(folder / (filename + file_extension))
+    else:
+        raise ValueError(f"File extension can only be '.INIT', '.INSPEC'")
+
+    return to_init(init, inspec)
+
+
+def read_unrst_rsspec(link: Path) -> UNRSTRSSPEC:
+    folder = link.parent
+    filename, file_extension = os.path.splitext(link.name)
+
+    if file_extension.upper() == ".UNRST":
+        unrst = BinaryReader.read_all_file(folder / (filename + file_extension))
+        rsspec = BinaryReader.read_all_file(folder / (filename + ".RSSPEC"))
+    elif file_extension.upper() == ".RSSPEC":
+        unrst = BinaryReader.read_all_file(folder / (filename + ".UNRST"))
+        rsspec = BinaryReader.read_all_file(folder / (filename + file_extension))
+    else:
+        raise ValueError(f"File extension can only be '.UNRST', '.RSSPEC'")
+
+    return to_unrst_rsspec(unrst, rsspec)
 
 
 def read_binary(link: Path) -> BinaryData:

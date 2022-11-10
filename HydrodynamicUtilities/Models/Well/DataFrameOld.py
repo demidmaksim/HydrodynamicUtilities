@@ -7,10 +7,11 @@ if TYPE_CHECKING:
 import pandas as pd
 import numpy as np
 
-from .Trajectory import Trajectory
+from .TrajectoryWorkerOld import Trajectory
 from copy import deepcopy
 from ..Strategy.Frame import ScheduleDataframe, ScheduleSheet
 from ..Source.EclipseScheduleNames import WELLTRACK
+from pathlib import Path
 
 
 class WellTrajectoryDataFrame:
@@ -135,3 +136,33 @@ class WellTrajectoryDataFrame:
         for trj in self:
             sdf = sdf + trj.to_schedule_dataframe()
         return sdf
+
+    def get_well_name(self) -> List[str]:
+        return list(pd.unique(self.df[self.Well]).astype(str))
+
+    def to_petrel(self, path: Path) -> None:
+        results = []
+        for well in self.get_well_name():
+            well_df = self.df[self.df[self.Well] == well]
+            for rev in pd.unique(well_df[self.Rev]):
+                rev_df = well_df[well_df[self.Rev] == rev]
+                for bore in pd.unique(rev_df[self.Bore]):
+                    bore_df = rev_df[rev_df[self.Bore] == bore]
+                    bore_df = bore_df.sort_values(by=self.Index)
+                    mdf = pd.DataFrame()
+                    mdf["X"] = bore_df["X"]
+                    mdf["Y"] = bore_df["Y"]
+                    mdf["Z"] = -bore_df["Z"]
+                    data = mdf.to_string(
+                        col_space=12,
+                        # justify="inherit",
+                        index=False,
+                        header=False,
+                        na_rep="1*",
+                        float_format="%.2f",
+                    )
+                    str_data = f"#WELL NAME:\t{well}_{rev}%{well}_{rev}_{bore}\n{data}"
+                    results.append(str_data)
+        str_results = "\n".join(results)
+        with open(path, "w") as file:
+            file.write(str_results)

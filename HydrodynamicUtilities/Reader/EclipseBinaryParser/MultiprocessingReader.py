@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 from pathlib import Path
 from multiprocessing import Pool
 
-from HydrodynamicModelAnalysis.Models.EclipseBinaryFile import SUMMARYList
+from HydrodynamicUtilities.Models.EclipseBinaryFile.Summary import SUMMARYList
 from ..SecondaryFunctions import research_folder
 from .BinaryFile import read
 

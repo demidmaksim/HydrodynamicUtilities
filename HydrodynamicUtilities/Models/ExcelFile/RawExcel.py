@@ -13,7 +13,7 @@ import datetime as dt
 
 from pathlib import Path
 
-from .Converters.Converters import ConvertorToRateWellData
+from .Converters.History import ConvertorToRateWellData
 from ..HistoryData import (
     WellMeasurement,
     WellHistory,
@@ -24,8 +24,17 @@ from ..HistoryData import (
 )
 from ..Time import TimeVector, TimeDelta, TimePoint
 from ..Strategy import ScheduleDataframe, ScheduleSheet, Strategy
-from ..Source.EclipseScheduleNames import BaseKeyWord, ScheduleKeyword
+from ..Source.EclipseScheduleNames import (
+    BaseKeyWord,
+    ScheduleKeyword,
+    WELLTRACK,
+    FRACTURE_SPECS,
+    COMPDATMD,
+)
 from ..ParamVector import TimeSeries
+from .Converters.DesignPattern import FractureCreator, CompdatmdCreator
+from HydrodynamicUtilities.Models.PetrophysicalModel.RPP import SimpleRPP, TwoPhaseRPP
+from HydrodynamicUtilities.Models.PetrophysicalModel.Samples import BaseSamples
 
 
 def excel_time_to_time_vector(etime: np.ndarray) -> TimeVector:
@@ -93,11 +102,41 @@ def remove_unnecessary(
     # new["Time"] = new["Time"].astype(dtype="datetime64[s]")
 
     for column in keyword_pattern.Order:
-        new[column] = df[column].values
+        if column == "MD" and column not in df.columns:
+            pass
+        else:
+            new[column] = df[column].values
 
     new = new.dropna(how="all")
+    if issubclass(keyword_pattern, WELLTRACK) and "MD" not in new.columns:
+        new = welltrack(new)
 
     return new
+
+
+def welltrack(df: pd.DataFrame) -> pd.DataFrame:
+    all_md = np.zeros(df[WELLTRACK.BoreName].values.shape)
+    for wname in pd.unique(df[WELLTRACK.WellName]):
+        wdf = df[df[WELLTRACK.WellName] == wname]
+        for bname in pd.unique(wdf[WELLTRACK.BoreName]):
+            bdf = wdf[wdf[WELLTRACK.BoreName] == bname]
+            x = bdf[WELLTRACK.X].values
+            y = bdf[WELLTRACK.Y].values
+            z = bdf[WELLTRACK.Z].values
+            md = np.zeros(x.shape)
+            md[1:] = (
+                (x[1:] - x[:-1]) ** 2
+                + ((y[1:] - y[:-1]) ** 2)
+                + ((z[1:] - z[:-1]) ** 2)
+            )
+            md = md**0.5
+            md = md.cumsum()
+            all_md[
+                (df[WELLTRACK.WellName] == wname) & (df[WELLTRACK.BoreName] == bname)
+            ] = md
+    df[WELLTRACK.MD] = all_md
+    df[WELLTRACK.WellName] = df[WELLTRACK.WellName].astype(str).str.upper()
+    return df
 
 
 class RawExcelSheet:
@@ -181,6 +220,33 @@ class RawExcelSheet:
         vfp_data = self.__get_vfp_history(vfp_column_name)
         valve_data = self.__get_valve(valve_size_column_name)
         return ConstructionHistory(vfp_data, valve_data)
+
+    def convert_to_simple_core_data(self) -> List[TwoPhaseRPP]:
+        results = list()
+        first_head = self.DF.iloc[0, :].fillna(method="ffill")
+        second_head = self.DF.iloc[1, :].fillna(method="ffill")
+        df = self.DF.iloc[3:, :]
+        df = pd.DataFrame(df.values, columns=[first_head, second_head])
+        for sample in pd.unique(df["Образец"].iloc[:, 0]):
+            sdf = df[df["Образец"].iloc[:, 0] == sample]
+            perm = sdf["Проницаемость по газу"].iloc[0, 0]
+            sample = BaseSamples(str(sample), perm, 0)
+            soil = sdf["Насыщенность"]["Нефть"].values
+            swat = sdf["Насыщенность"]["Вода"].values
+            sgas = sdf["Насыщенность"]["Газ"].values
+            if sum(sgas) == 0:
+                operm = sdf["Фазовая проницаемость"]["Нефть"].values
+                wperm = sdf["Фазовая проницаемость"]["Вода"].values
+                orpp = SimpleRPP(soil, operm, "oil", sample)
+                wrpp = SimpleRPP(swat, wperm, "wat", sample)
+                results.append(TwoPhaseRPP(wrpp, orpp))
+            else:
+                gperm = sdf["Фазовая проницаемость"]["Газ"].values
+                operm = sdf["Фазовая проницаемость"]["Нефть"].values
+                grpp = SimpleRPP(sgas, gperm, "gas", sample)
+                orpp = SimpleRPP(soil, operm, "oil", sample)
+                results.append(TwoPhaseRPP(grpp, orpp))
+        return results
 
 
 class RawExcelFile:
@@ -268,6 +334,22 @@ class RawExcelFile:
                 sheet = value.get_events(keyword_name=key)
                 if not sheet.empty():
                     sdf = sdf + sheet
+
+        if "FrackBinding" in self:
+            wsheet = getattr(sdf, WELLTRACK.__name__)
+            df = FractureCreator().get_fracture(self, wsheet)
+            sheet = ScheduleSheet(FRACTURE_SPECS)
+            sheet.DF = df
+            if not sheet.empty():
+                sdf = sdf + sheet
+
+        if "FilterBinding" in self:
+            wsheet = getattr(sdf, WELLTRACK.__name__)
+            df = CompdatmdCreator().get_compdatmd(self, wsheet)
+            sheet = ScheduleSheet(FRACTURE_SPECS)
+            sheet.DF = df
+            if not sheet.empty():
+                sdf = sdf + sheet
 
         if sdf.empty():
             return None

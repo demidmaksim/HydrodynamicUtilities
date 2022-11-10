@@ -1,2 +1,3 @@
-from .WellStack import WellList
-from .DataFrame import WellTrajectoryDataFrame
+from .WellStackOld import WellList
+from .DataFrameOld import WellTrajectoryDataFrame
+from .TrajectoryWorkerOld import Trajectory

@@ -2,11 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    import numpy as np
-    import pandas as pd
     from typing import Union, Dict, Tuple, List, Optional, Any
-
-    iter_var = Union[List[str], Tuple[str, ...], np.ndarray, pd.Series]
 
 import numpy as np
 import pandas as pd
@@ -19,6 +15,10 @@ from ..Time import TimeVector, TimePoint, TimeDelta
 
 class TimeSeries:
     def __init__(self, time: TimeVector, data: np.ndarray) -> None:
+        if len(data.shape) == 2:
+            if data.shape[1] == 1:
+                data = data.T[0]
+
         self.Data = pd.Series(data=data, index=time.to_frame_index())
 
     def __setitem__(self, key: Any, value: Any) -> None:
@@ -170,97 +170,22 @@ class TimeSeries:
         new.Data[:] = self.Data.values.cumsum()
         return new
 
-
-class StatusVector(TimeSeries):
-    def get_downtime_flag(self) -> TimeSeries:
-        results = np.zeros(self.shape())
-        results[self.Data.values == 0] = 1
-        return TimeSeries(self.get_time(), results.astype(bool))
-
-    def get_work_flag(self) -> TimeSeries:
-        results = np.zeros(self.shape())
-        results[self.Data.values != 0] = 1
-        return TimeSeries(self.get_time(), results.astype(bool))
-
-    def get_prod_mode_flag(self) -> TimeSeries:
-        results = np.zeros(self.shape())
-        results[self.Data.values == 1] = 1
-        return TimeSeries(self.get_time(), results.astype(bool))
-
-    def get_inj_mode_flag(self) -> TimeSeries:
-        results = np.zeros(self.shape())
-        results[self.Data.values == -1] = 1
-        return TimeSeries(self.get_time(), results.astype(bool))
-
-    def get_mode_change_flag(self) -> TimeSeries:
-        results = np.zeros(self.shape())
-        value = self.Data.values
-        results[1:] = value[1:] != value[:-1]
-        return TimeSeries(self.get_time(), results.astype(bool))
-
-    def get_start_flag(self) -> TimeSeries:
-        results = np.zeros(self.shape())
-        value = abs(self.Data.values)
-        results[1:] = value[1:] != value[:-1]
-        results = results * self.get_work_flag().values
-        return TimeSeries(self.get_time(), results.astype(bool))
-
-    def get_stop_flag(self) -> TimeSeries:
-        results = np.zeros(self.shape())
-        value = self.Data.values
-        results[1:] = value[1:] != value[:-1]
-        results = results * self.get_downtime_flag().values
-        return TimeSeries(self.get_time(), results.astype(bool))
-
-    def get_work_time(self) -> TimeSeries:
-        time = self.get_time()
-        periods = time.get_periods()
-        work_periods = periods * abs(self.Data.values)
-        cum_value = np.zeros(time.shape())
-        cum_value[1:] = work_periods.cumsum()[:-1]
-        return TimeSeries(time, cum_value)
-
-    def get_cum_period(self) -> TimeSeries:
-        time = self.get_time()
-        periods = time.get_periods()
-        work_periods = periods
-        cum_value = np.zeros(time.shape())
-        cum_value[1:] = work_periods.cumsum()[:-1]
-        return TimeSeries(time, cum_value)
-
-    def get_last_mode(self) -> StatusVector:
-        values = deepcopy(self.Data.values)
-        values[values == 0] = np.NAN
-        df = pd.Series(values)
-        df = df.fillna(method="ffill")
-        df = df.fillna(method="bfill")
-        return StatusVector(self.get_time(), df.values)
-
-    def get_event_time(self) -> TimeVector:
-        mode_flag = self.get_mode_change_flag()
-        tv = mode_flag[mode_flag == 1].get_time()
-        return tv
-
-    def get_change_event_time(self) -> TimeVector:
-        new_status = self.get_last_mode()
-        mode_flag = new_status.get_mode_change_flag()
-        return mode_flag[mode_flag == 1].get_time()
-
-    def get_interpolation_model(self) -> InterpolationModel:
+    def to_interpolation_model(
+        self,
+        step: str = "D",
+        kind: str = "linear",
+        copy: bool = True,
+        bounds_error: Union[bool, str] = True,
+        fill_value: Union[Union[float, int], Tuple[float, float]] = np.NAN,
+    ) -> InterpolationModel:
         return InterpolationModel(
             self,
-            step="D",
-            kind="zero",
+            step,
+            kind,
+            copy,
+            bounds_error,
+            fill_value,
         )
-
-    def get_wefac(self, out_tv: TimeVector) -> TimeSeries:
-        work_time_model = InterpolationModel(self.get_work_time())
-        tv_model = InterpolationModel(self.get_cum_period())
-
-        work_time = work_time_model.get_delta(out_tv)
-        time = tv_model.get_delta(out_tv)
-
-        return work_time / time
 
 
 class InterpolationModel:

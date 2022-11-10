@@ -91,20 +91,21 @@ class TimeVector:
     def __repr__(self) -> str:
         return f"TimeVector {len(self.Dates)}"
 
-    def __iter__(self) -> Iterator:
+    def __iter__(self) -> Iterator[np.datetime64]:
         return iter(self.to_datetime64())
 
     def __getitem__(self, item: Any) -> Optional[TimeVector, TimePoint]:
-        days = self.Dates[item]
-        if type(days) == np.ndarray:
-            return TimeVector(days)
-        else:
+        if isinstance(item, int):
+            days = self.Dates[item]
             return TimePoint(days)
+        else:
+            days = self.Dates[item]
+            return TimeVector(days)
 
     def __contains__(self, item: Union[np.datetime64, TimePoint]) -> bool:
-        if type(item) == np.datetime64:
+        if isinstance(item, np.datetime64):
             return item in self.Dates
-        elif type(item) == np.datetime64:
+        elif isinstance(item, TimePoint):
             return item.Date in self.Dates
         else:
             raise TypeError
@@ -488,9 +489,26 @@ def generate_time_vector(
     step: str,
     value_step: int = None,
     easter_egg_flag: bool = False,
+    flat_borders: bool = False,
 ) -> TimeVector:
     start = start.Date
     end = end.Date
+
+    if flat_borders:
+        all_steps = ("Y", "M", "D", "h", "m", "s", "ms")
+        if step != "Y":
+            ts = all_steps[all_steps.index(step)]
+            ts1 = all_steps[all_steps.index(step) - 1]
+        else:
+            ts = step
+            ts1 = step
+
+        start = start.astype(dtype=f"datetime64[{ts1}]")
+        start = start.astype(dtype=f"datetime64[{ts}]")
+
+        end = end.astype(dtype=f"datetime64[{ts1}]") + 1
+        end = end.astype(dtype=f"datetime64[{ts}]")
+
     if value_step is not None:
         dtype = f"datetime64[{step}]"
         vector = np.arange(start, end, dtype=dtype, step=value_step)
@@ -507,8 +525,14 @@ def generate_time_vector(
             v = pd.Series(vector)
             v = pd.Series(pd.unique(v))
             vector = v.sort_values()
-        return TimeVector(vector.values)
-    return TimeVector(vector)
+        results = TimeVector(vector.values)
+        results = results.sort()
+        results = results.unique()
+        return results
+    results = TimeVector(vector)
+    results = results.sort()
+    results = results.unique()
+    return results
 
 
 class NonLinearTime:

@@ -6,7 +6,7 @@ import numpy as np
 
 if TYPE_CHECKING:
     from typing import Dict, List, Type, Any, Iterator, Tuple, Optional, Union, Iterable
-
+    import io
 
 import pandas as pd
 
@@ -20,15 +20,20 @@ from HydrodynamicUtilities.Models.Time.Vector import TimeVector
 
 
 class ScheduleRow:
-    def __init__(self, pattern: Type[BaseKeyWord], data: Iterable):
+    def __init__(
+        self,
+        pattern: Type[BaseKeyWord],
+        data: Iterable = None,
+    ) -> None:
         self.Pattern = pattern
         self.DF = pd.Series(index=("Time",) + pattern.Order, dtype=object)
-        for v_id, value in enumerate(data):
-            if v_id < len(self.DF.values):
-                if value != "1*":
-                    self.DF.iloc[v_id] = value
-            else:
-                print("redundant value")
+        if data is not None:
+            for v_id, value in enumerate(data):
+                if v_id < len(self.DF.values):
+                    if value != "1*":
+                        self.DF.iloc[v_id] = value
+                else:
+                    print(f"KeyWord: {pattern.__name__}, redundant value")
 
     def __repr__(self) -> str:
         return f"ScheduleRow: {self.Pattern.__name__}"
@@ -101,6 +106,9 @@ class ScheduleRow:
                 results.append((key, None))
         return iter(results)
 
+    def empty(self) -> bool:
+        return all(pd.isna(self.DF.values))
+
 
 class ScheduleSheet:
     def __init__(self, pattern: Type[BaseKeyWord]):
@@ -141,8 +149,8 @@ class ScheduleSheet:
         item: Union[np.datetime64, np.ndarray],
     ) -> Optional[ScheduleSheet]:
         new = deepcopy(self)
-        if type(item) == np.datetime64:
-            pattern = self.DF["Time"].values == item
+        if isinstance(item, np.datetime64):
+            pattern = self.DF["Time"].values.astype(np.datetime64) == item
             new.DF = self.DF[pattern]
         elif type(item) == np.ndarray:
             if type(item[0]) == np.datetime64:
@@ -175,7 +183,10 @@ class ScheduleSheet:
                 results.append((key, None))
         return iter(results)
 
-    def __add__(self, other: Optional[ScheduleSheet]) -> ScheduleSheet:
+    def __add__(
+        self,
+        other: Union[ScheduleSheet, ScheduleRow],
+    ) -> ScheduleSheet:
         if other is None:
             return self
 
@@ -183,8 +194,18 @@ class ScheduleSheet:
             raise TypeError
 
         new = deepcopy(self)
-
-        new.DF = pd.concat([new.DF, other.DF], ignore_index=True)
+        if isinstance(other, ScheduleRow):
+            new.DF = pd.concat(
+                [new.DF, pd.DataFrame(other.DF).T],
+                ignore_index=True,
+                axis=0,
+            )
+        if isinstance(other, ScheduleSheet):
+            new.DF = pd.concat(
+                [new.DF, pd.DataFrame(other.DF)],
+                ignore_index=True,
+                axis=0,
+            )
 
         return new
 
@@ -233,7 +254,10 @@ class ScheduleSheet:
             new.DF = new_df
             return new
 
-    def drop_not_nan_time(self, in_place: bool = True) -> Optional[ScheduleSheet]:
+    def drop_not_nan_time(
+        self,
+        in_place: bool = True,
+    ) -> Optional[ScheduleSheet]:
         pattern = pd.isna(self.DF["Time"])
         new_df = self.DF[pattern]
         if in_place:
@@ -244,11 +268,26 @@ class ScheduleSheet:
             new.DF = new_df
             return new
 
+    def get_nan_time(self) -> Optional[ScheduleSheet]:
+        pattern = pd.isna(self.DF["Time"])
+        new_df = self.DF[pattern]
+        if not new_df.empty:
+            new = deepcopy(self)
+            new.DF = new_df
+            return new
+        else:
+            return None
+
     def empty(self) -> bool:
         return self.DF.empty
 
     def add_row(self, data: ScheduleRow) -> None:
         self.DF.loc[len(self.DF)] = data.DF
+
+    def to_string(
+        self, path_or_buf: Union[str, io.StringIO] = None
+    ) -> Union[str, io.StringIO]:
+        return self.Pattern.to_string(self.DF, path_or_buf)
 
 
 class ScheduleDataframe:
@@ -435,3 +474,31 @@ class ScheduleDataframe:
             sheet = ScheduleSheet(data.Pattern)
             self.__setattr__(sheet.Pattern.__name__, sheet)
         sheet.add_row(data)
+
+    def append(self, other: Union[ScheduleDataframe, ScheduleSheet]) -> None:
+        if type(other) == ScheduleDataframe:
+            for sheet in other:
+                name = sheet.Pattern.__name__
+                try:
+                    self_sheet = getattr(self, name)
+                    setattr(self, name, self_sheet + sheet)
+                except AttributeError:
+                    setattr(self, name, sheet)
+
+        elif type(other) == ScheduleSheet:
+            name = other.Pattern.__name__
+            try:
+                self_sheet = getattr(self, name)
+                setattr(self, name, self_sheet + other)
+            except AttributeError:
+                setattr(self, name, other)
+
+        elif isinstance(other, type(None)):
+            pass
+        else:
+            raise TypeError
+
+
+def get_sheet(name: str) -> ScheduleSheet:
+    pattern = ScheduleKeyword.Order[name.upper()]
+    return ScheduleSheet(pattern)

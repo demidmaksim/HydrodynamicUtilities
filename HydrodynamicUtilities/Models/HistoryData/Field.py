@@ -12,7 +12,8 @@ from HydrodynamicUtilities.Models.Strategy import (
     Strategy,
     ReportSteps,
 )
-from HydrodynamicUtilities.Writer import create_schedule, write_xlsx
+
+# from HydrodynamicUtilities.Writer import create_schedule, write_xlsx
 import time
 from multiprocessing import Pool
 
@@ -158,6 +159,7 @@ class FieldHistory:
 
         for well in self.WellData.values():
             t = well.get_events()
+            t = t[(t > fsr.min) & (t < fsr.max)]
             fsr.extend(t)
 
         fsr.unique(in_place=True)
@@ -214,6 +216,7 @@ class FieldHistory:
         sdf = self.get_all_events()
         return Strategy(sdf, steps)
 
+    """
     def create_schedule(
         self,
         path: Union[str, Path] = "Results.sch",
@@ -226,3 +229,4 @@ class FieldHistory:
     def to_excel(self, path: Union[str, Path] = "Results.xlsx") -> None:
         sdf = self.get_all_events()
         write_xlsx(sdf, path)
+    """
