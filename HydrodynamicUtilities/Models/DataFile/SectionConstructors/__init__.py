@@ -18,7 +18,7 @@ from .PROPS import PROPSConstructor
 # from .REGIONS import
 # from .SOLUTION import
 # from .SUMMARY import
-# from .SCHEDULE import
+from .SCHEDULE import SCHEDULECreator
 
 
 def get_constructor(sections: Section) -> BaseKeywordCreator:
@@ -29,5 +29,7 @@ def get_constructor(sections: Section) -> BaseKeywordCreator:
         return GRIDConstructor()
     elif name in ("PROPS", "UnInitializedPROPS"):
         return PROPSConstructor()
+    elif name in ("SCHEDULE", "UnInitializedSCHEDULE"):
+        return SCHEDULECreator()
     else:
         return BaseKeywordCreator()

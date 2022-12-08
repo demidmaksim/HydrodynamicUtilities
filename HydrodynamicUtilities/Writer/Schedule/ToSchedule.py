@@ -115,7 +115,11 @@ class SCHWriter:
             else:
                 to_write.write(f"/\n\n")
 
-    def __write_well_track_file(self, sdf: Sdf, target_path: Path) -> Dict[str, str]:
+    def __write_well_track_file(
+            self,
+            sdf: Sdf,
+            target_path: Path,
+    ) -> Dict[str, str]:
 
         if not self.DesignsInSeparateFiles:
             return dict()
@@ -150,7 +154,11 @@ class SCHWriter:
         return results
 
     def __write_welltrack_dict(
-        self, to_write: io.StringIO, sheet: Ss, time: TimePoint, wtdict: Dict[str, str]
+            self,
+            to_write: io.StringIO,
+            sheet: Ss,
+            time: TimePoint,
+            wtdict: Dict[str, str],
     ) -> io.StringIO:
         str_time = time.to_str("%Y_%m_%d_%H_%M_%S")
         for wname in pd.unique(sheet.DF[WELLTRACK.WellName]):
@@ -190,6 +198,9 @@ class SCHWriter:
                             TimePoint(sch_dates.CurrentTime.Date),
                             welltrack_file,
                         )
+                    elif not self.DesignsInSeparateFiles:
+                        to_write = sheet.to_string(to_write)
+
         return to_write
 
     @staticmethod

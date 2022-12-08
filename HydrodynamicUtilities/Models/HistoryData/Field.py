@@ -189,6 +189,7 @@ class FieldHistory:
     def __get_schedule(self, tv: TimeVector) -> ScheduleDataframe:
         sdf = ScheduleDataframe()
         for well in self.WellData.values():
+            print(well.WellName)
             t = time.time()
             sdf = sdf + well.get_schedule(tv)
             print(f"\tsdf: {round(time.time() - t, 2)}")

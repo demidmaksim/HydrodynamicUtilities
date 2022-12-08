@@ -30,6 +30,7 @@ from ..Source.EclipseScheduleNames import (
     WELLTRACK,
     FRACTURE_SPECS,
     COMPDATMD,
+    FRACTURE_STAGE,
 )
 from ..ParamVector import TimeSeries
 from .Converters.DesignPattern import FractureCreator, CompdatmdCreator
@@ -337,16 +338,21 @@ class RawExcelFile:
 
         if "FrackBinding" in self:
             wsheet = getattr(sdf, WELLTRACK.__name__)
-            df = FractureCreator().get_fracture(self, wsheet)
-            sheet = ScheduleSheet(FRACTURE_SPECS)
-            sheet.DF = df
-            if not sheet.empty():
-                sdf = sdf + sheet
+            df_specs, df_stage = FractureCreator().get_fracture(self, wsheet)
+            sheet_specs = ScheduleSheet(FRACTURE_SPECS)
+            sheet_specs.DF = df_specs
+            if not sheet_specs.empty():
+                sdf = sdf + sheet_specs
+
+            sheet_stage = ScheduleSheet(FRACTURE_STAGE)
+            sheet_stage.DF = df_stage
+            if not sheet_stage.empty():
+                sdf = sdf + sheet_stage
 
         if "FilterBinding" in self:
             wsheet = getattr(sdf, WELLTRACK.__name__)
             df = CompdatmdCreator().get_compdatmd(self, wsheet)
-            sheet = ScheduleSheet(FRACTURE_SPECS)
+            sheet = ScheduleSheet(COMPDATMD)
             sheet.DF = df
             if not sheet.empty():
                 sdf = sdf + sheet

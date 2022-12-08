@@ -186,7 +186,10 @@ class TimeVector:
         return len(self.Dates)
 
     def __unique(self) -> np.ndarray:
-        return pd.unique(self.Dates)
+        try:
+            return pd.unique(self.Dates)
+        except:
+            return pd.unique(self.Dates.astype("datetime64[m]"))
 
     def unique(self, in_place: bool = False) -> Optional[TimeVector]:
         if in_place:
@@ -514,7 +517,7 @@ def generate_time_vector(
         vector = np.arange(start, end, dtype=dtype, step=value_step)
     else:
         vector = np.arange(start, end, dtype=f"datetime64[{step}]")
-    vector = vector.astype(dtype=f"datetime64[s]")
+    vector = vector.astype(dtype=f"datetime64[m]")
     vector = vector[1:]
     vector = np.concatenate((vector, [np.datetime64(start), np.datetime64(end)]))
 

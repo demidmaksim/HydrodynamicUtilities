@@ -4,10 +4,10 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..RawExcel import RawExcelFile
-    from typing import Optional, List, Dict, Union
+    from typing import Optional, List, Dict, Union, Tuple
 
 from ...Strategy import ScheduleDataframe, ScheduleSheet, Strategy
-from ...Source.EclipseScheduleNames import FRACTURE_SPECS, WELSPECS, WELLTRACK
+from ...Source.EclipseScheduleNames import FRACTURE_SPECS, WELSPECS, WELLTRACK, COMPDATMD, FRACTURE_STAGE
 
 import pandas as pd
 import numpy as np
@@ -60,6 +60,8 @@ class FractureCreator:
                 return np.datetime64(welspec["Time"].iloc[0])
             else:
                 return np.datetime64("nat")
+        else:
+            return start
 
     @staticmethod
     def get_stop_time(row: pd.Series) -> np.datetime64:
@@ -85,7 +87,7 @@ class FractureCreator:
         bname: int,
     ) -> List[float]:
         wname = str(row[self.WellName]).upper()
-        wtrack = welltrack[welltrack[WELLTRACK.WellName] == wname]
+        wtrack = welltrack[welltrack[WELLTRACK.WellName].astype(str) == wname]
         btrack = wtrack[wtrack[WELLTRACK.BoreName] == bname]
 
         if btrack.empty:
@@ -110,17 +112,25 @@ class FractureCreator:
         mav = max(start_point, end_point)
         return list(np.arange(miv, mav, step))
 
-    def get_fracture(self, file: RawExcelFile, wt_ss: ScheduleSheet) -> ScheduleSheet:
+    def get_fracture(
+            self,
+            file: RawExcelFile,
+            wt_ss: ScheduleSheet,
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         try:
             binding = self.convert_binding(file["FrackBinding"].DF)
             pattern = self.convert_pattern(file["FrackPattern"].DF)
         except KeyError:
-            return ScheduleSheet(FRACTURE_SPECS)
+            return (
+                pd.DataFrame(columns=("Time", ) + FRACTURE_SPECS.Order),
+                pd.DataFrame(columns=("Time",) + FRACTURE_STAGE.Order),
+            )
 
         welspec = self.get_welspecs(file)
         welltrack = wt_ss.DF
 
-        results = pd.DataFrame()
+        results_specs = pd.DataFrame()
+        results_stage = pd.DataFrame()
 
         for rid, row in binding.iterrows():
             wname = row[self.WellName]
@@ -134,18 +144,26 @@ class FractureCreator:
                 all_md = self.get_md(welltrack, row, int(bore))
                 for frack_id in range(numbe):
                     frack_name = self.get_frack_name(wname, bore, frack_id)
-                    p = deepcopy(patte)
-                    p["Time"] = start
-                    p[FRACTURE_SPECS.WellName] = wname
-                    p[FRACTURE_SPECS.Bore] = bore
-                    p[FRACTURE_SPECS.FracName] = frack_name
-                    p[FRACTURE_SPECS.MD] = all_md.pop(0)
-                    results = pd.concat([results, p])
+                    specs = deepcopy(patte)
+                    specs["Time"] = start
+                    specs[FRACTURE_SPECS.WellName] = wname
+                    specs[FRACTURE_SPECS.Bore] = bore
+                    specs[FRACTURE_SPECS.FracName] = frack_name
+                    specs[FRACTURE_SPECS.MD] = all_md.pop(0)
+
+                    results_specs = pd.concat([results_specs, specs])
+
+                    stage = ScheduleSheet(FRACTURE_STAGE).DF
+                    stage["Time"] = [start]
+                    stage[FRACTURE_STAGE.FracName] = frack_name
+                    stage[FRACTURE_STAGE.FrackState] = "ON"
+
+                    results_stage = pd.concat([results_stage, stage])
 
         res = pd.DataFrame()
-        for col in FRACTURE_SPECS.Order:
-            res[col] = results[col]
-        return results
+        for col in ("Time",) + FRACTURE_SPECS.Order:
+            res[col] = results_specs[col]
+        return res, results_stage
 
 
 class CompdatmdCreator:
@@ -178,31 +196,56 @@ class CompdatmdCreator:
         if welspec is None:
             return np.datetime64("nat")
 
-        welspec = welspec[welspec[WELSPECS.WellName].astype(str) == wname]
+        welspec = welspec[welspec[WELSPECS.WellName].astype(str) == str(wname)]
         if not welspec.empty:
             return np.datetime64(welspec["Time"].iloc[0])
         else:
             return np.datetime64("nat")
 
-    def get_min_max_md(self):
-        pass
+    def get_min_max_md(
+            self,
+            length: Union[float, int],
+            welltrack: pd.DataFrame,
+            wname: str,
+            bname: int,
+    ) -> Tuple[Union[float, int], Union[float, int]]:
+        wtrack = welltrack[welltrack[WELLTRACK.WellName].astype(str) == wname]
+        btrack = wtrack[wtrack[WELLTRACK.BoreName] == bname]
+        max_md = max(btrack[WELLTRACK.MD].values)
+
+        return max_md - length, max_md
 
     def get_compdatmd(
-        self, file: RawExcelFile, ws_ss: ScheduleSheet, wt_ss: Optional[ScheduleSheet]
-    ) -> ScheduleSheet:
+        self,
+        file: RawExcelFile,
+        ws_ss: ScheduleSheet,
+    ) -> pd.DataFrame:
         try:
             binding = self.convert_binding(file["FilterBinding"].DF)
             pattern = self.convert_sheet(file["FilterPattern"].DF)
         except KeyError:
-            return ScheduleSheet(FRACTURE_SPECS)
+            return pd.DataFrame(columns=("Time", ) + COMPDATMD.Order)
 
         results = pd.DataFrame()
 
         for wname, bore_patterns in binding.items():
             start_time = self.get_start_time(ws_ss.DF, wname)
-            for bore, bp in binding.items():
-                start_md, end_md = 1, 1
-                p = pattern[pattern["Имя Шаблона"] == bp]
-                p["Time"] = start_time
+            for bore, bp in bore_patterns.items():
 
-        pass
+                patte = pattern[pattern["Имя Шаблона"] == bp]
+                length = patte["Длина фильтра"].values[0]
+                patte = patte.drop("Имя Шаблона", axis=1)
+                patte = patte.drop("Длина фильтра", axis=1)
+                smd, emd = self.get_min_max_md(length, ws_ss.DF, str(wname), bore)
+                p = deepcopy(patte)
+                p["Time"] = start_time
+                p["Имя скважины"] = wname
+                p['Номер ствола'] = bore
+                p["Первая отсечка перфорации"] = smd
+                p["Верхний предел перфорации"] = emd
+                results = pd.concat([results, p])
+
+        res = pd.DataFrame()
+        for col in ("Time", ) + COMPDATMD.Order:
+            res[col] = results[col]
+        return res
