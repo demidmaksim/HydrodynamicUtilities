@@ -2,14 +2,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import Any
+    from typing import Any, Iterable
 
 import pandas as pd
 from pathlib import Path
 from typing import Tuple
 from HydrodynamicUtilities.Models.Well import WellTrajectoryDataFrame
+from multiprocessing import Pool
 import re
 import os
+import numpy as np
 
 
 class ReaderSchlumbergerExcel:
@@ -19,7 +21,7 @@ class ReaderSchlumbergerExcel:
     x_col_name = "Northing\n(m)"
     y_col_name = "Easting\n(m)"
     z_col_name = "TVDSS\n(m)"
-
+    multi = 2
     logging = True
 
     def log(self, file_name: str, *args: Any, **kwargs: Any) -> None:
@@ -66,10 +68,20 @@ class ReaderSchlumbergerExcel:
             self.log(str(link))
         return wdf
 
-    def read_folder(self, link: Path) -> WellTrajectoryDataFrame:
+    def read_many_files(self, paths: Iterable[Path]) -> WellTrajectoryDataFrame:
+        wdf = WellTrajectoryDataFrame()
+        for path in paths:
+            try:
+                wdf = self.read_file(path, wdf)
+            except:
+                self.log(f"Permission denied: {path}")
+
+        return wdf
+
+    def __read_folder(self, link: Path) -> WellTrajectoryDataFrame:
         wdf = WellTrajectoryDataFrame()
         for file in os.listdir(link):
-            file_link = link / file
+            file_link = link / str(file)
             if file_link.is_file():
                 try:
                     wdf = self.read_file(file_link, wdf)
@@ -77,3 +89,28 @@ class ReaderSchlumbergerExcel:
                     self.log(f"Permission denied: {file_link}")
 
         return wdf
+
+    def __read_folder_multi(self, path: Path) -> WellTrajectoryDataFrame:
+        files = []
+        for file in os.listdir(path):
+            target_path = path / str(file)
+            if target_path.is_file():
+                files.append(target_path)
+
+        files = np.array_split(files, self.multi)
+
+        with Pool(self.multi) as p:
+            results = list(p.map(self.read_many_files, files))
+
+        wdf = results[0]
+
+        for block in results[1:]:
+            wdf.extend(block)
+
+        return wdf
+
+    def read_folder(self, link: Path, multiprocessing: bool = False) -> WellTrajectoryDataFrame:
+        if multiprocessing:
+            return self.__read_folder_multi(link)
+        else:
+            return self.__read_folder(link)

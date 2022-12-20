@@ -118,7 +118,7 @@ def get_time_vector(
     return Time(np.array(results))
 
 
-def read(link: Path, log: bool = True) -> Union[EclipseBinaryData]:
+def read(link: Path, log: bool = True) -> Union[EclipseBinaryData, SUMMARY]:
     filename, file_extension = os.path.splitext(link.name)
     t = time.time()
     if file_extension in (".SMSPEC", ".UNSMRY"):

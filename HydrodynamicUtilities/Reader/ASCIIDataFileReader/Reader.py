@@ -13,7 +13,10 @@ import time
 from HydrodynamicUtilities.Models.DataFile.SectionConstructors import get_constructor
 
 
-def read(path: Path, parent: ASCIIFilesIndexer = None) -> ASCIIFilesIndexer:
+def read(
+        path: Path,
+        parent: ASCIIFilesIndexer = None
+) -> ASCIIFilesIndexer:
     t = time.time()
     file = ASCIIFilesIndexer(path, parent)
     print(f"{path}: {round(time.time() - t, 2)}")
@@ -140,7 +143,9 @@ def convert_to_schedule_dataframe(
     return data_file
 
 
-def initialization_data_file(data_file: UnInitializedDataFile) -> DataFile:
+def initialization_data_file(
+        data_file: UnInitializedDataFile,
+) -> DataFile:
     results = DataFile()
     for sec in data_file.get_section_name():
         act_un_init_sec: UnInitializedSection = getattr(data_file, sec)

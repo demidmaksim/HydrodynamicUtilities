@@ -66,6 +66,9 @@ class WellTrajectoryDataFrame:
 
         self.df = pd.concat((self.df, df), ignore_index=True)
 
+    def extend(self, other: WellTrajectoryDataFrame) -> None:
+        self.df = pd.concat((self.df, other.df))
+
     def choose(
         self,
         well_name: str = None,
@@ -162,6 +165,33 @@ class WellTrajectoryDataFrame:
                         float_format="%.2f",
                     )
                     str_data = f"#WELL NAME:\t{well}_{rev}%{well}_{rev}_{bore}\n{data}"
+                    results.append(str_data)
+        str_results = "\n".join(results)
+        with open(path, "w") as file:
+            file.write(str_results)
+
+    def to_eclipse(self, path: Path) -> None:
+        results = []
+        for well in self.get_well_name():
+            well_df = self.df[self.df[self.Well] == well]
+            for rev in pd.unique(well_df[self.Rev]):
+                rev_df = well_df[well_df[self.Rev] == rev]
+                for bore in pd.unique(rev_df[self.Bore]):
+                    bore_df = rev_df[rev_df[self.Bore] == bore]
+                    bore_df = bore_df.sort_values(by=self.Index)
+                    mdf = pd.DataFrame()
+                    mdf["X"] = bore_df["X"]
+                    mdf["Y"] = bore_df["Y"]
+                    mdf["Z"] = bore_df["Z"]
+                    data = mdf.to_string(
+                        col_space=12,
+                        # justify="inherit",
+                        index=False,
+                        header=False,
+                        na_rep="1*",
+                        float_format="%.2f",
+                    )
+                    str_data = f"WELLTRACK\t{well}_{rev}:{bore}\n{data}"
                     results.append(str_data)
         str_results = "\n".join(results)
         with open(path, "w") as file:
